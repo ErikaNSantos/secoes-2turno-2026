@@ -210,8 +210,32 @@ function estados(d) {
       alvo(b, () => `<div class="t-titulo">${v.estados} estados onde ${v.vencedor} venceu</div><div class="t-linha"><b>${fmt(v.alteradas)}</b><span>seções alteradas de ${fmt(v.secoes)}</span></div>`);
     });
   }
-  tabela("t-vencedor", [["Quem venceu no estado"], ["Estados", 1], ["Seções no total", 1], ["Seções alteradas", 1], ["A cada 10 mil seções", 1]],
-    [pv.Lula, pv["Flávio"]].map((v) => [v.vencedor, fmt(v.estados), fmt(v.secoes), fmt(v.alteradas), fmt(v.por_10mil, 1)]));
+  tabela("t-vencedor", [["Quem venceu no estado"], ["Estados", 1], ["Seções no total", 1], ["Seções alteradas", 1], ["A cada 10 mil seções", 1], ["Eleitores nas seções alteradas", 1]],
+    [pv.Lula, pv["Flávio"]].map((v) => [v.vencedor, fmt(v.estados), fmt(v.secoes), fmt(v.alteradas), fmt(v.por_10mil, 1), fmt(v.aptos_alteradas)]));
+
+  // Exposição: votos do 1º turno dentro das seções alteradas, em número absoluto
+  const alt = d.resultados.reais.grupos.find((g) => g.grupo === "alteradas");
+  const brasil = d.resultados.reais.grupos.find((g) => g.grupo === "Brasil");
+  legenda("leg-expostos", [["Lula", "--series-1"], ["Flávio", "--series-2"]]);
+  {
+    const validos = alt.lula + alt.flavio + alt.outros;
+    const lin = [["Lula", alt.lula, "--series-1"], ["Flávio", alt.flavio, "--series-2"]];
+    const { svg, largura } = svgNovo("g-expostos", lin.length * 40);
+    const maxv = Math.max(...lin.map((l) => l[1]));
+    const wv = largura - 290;
+    lin.forEach(([nome, v, c], i) => {
+      const y = i * 40;
+      texto(svg, 0, y + 22, nome, { class: "rotulo-forte" });
+      const bw = (v / maxv) * wv;
+      const b = barraH(svg, 70, y + 8, bw, 22, cor(c));
+      texto(svg, 70 + bw + 8, y + 24, `${fmt(v)} votos (${pct((100 * v) / validos)} dos válidos)`, { class: "rotulo-forte" });
+      alvo(b, () => `<div class="t-titulo">Seções alteradas · 1º turno</div><div class="t-linha"><i style="background:${cor(c)}"></i><b>${fmt(v)}</b><span>votos em ${nome}</span></div>`);
+    });
+  }
+  document.getElementById("txt-expostos").innerHTML =
+    `Lula teve <strong>${fmt(alt.lula - alt.flavio)} votos a mais</strong> que Flávio nessas seções, então, se a mudança de local reduzir o comparecimento, ele perde mais votos em número absoluto. ` +
+    `O efeito é pequeno perto da eleição: são ${fmt(alt.aptos)} eleitores aptos nas seções alteradas, de ${fmt(brasil.aptos)} no país. ` +
+    `E isso mostra quem é mais exposto, não quem foi escolhido como alvo: dentro das zonas, as escolas alteradas votam como as vizinhas.`;
 
   const est = [...d.estados].sort((a, b) => b.por_10mil - a.por_10mil || a.uf.localeCompare(b.uf));
   const linha = 22, esq = 34;

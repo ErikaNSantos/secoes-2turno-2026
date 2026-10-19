@@ -56,7 +56,8 @@ def main() -> None:
         if nome == "reais":
             est = analise.estados(con)
             vencedor = (est.groupby("vencedor")
-                           .agg(estados=("uf", "size"), secoes=("secoes", "sum"), alteradas=("alteradas", "sum"))
+                           .agg(estados=("uf", "size"), secoes=("secoes", "sum"), alteradas=("alteradas", "sum"),
+                                aptos_alteradas=("aptos_alteradas", "sum"))
                            .reset_index())
             vencedor["por_10mil"] = 10000 * vencedor.alteradas / vencedor.secoes
             TABELAS.mkdir(parents=True, exist_ok=True)

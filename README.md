@@ -29,12 +29,16 @@ Votos válidos no 1º turno:
 
 Somando os estados por quem venceu no 1º turno:
 
-| Quem venceu no estado | Estados | Seções no total | Seções alteradas | A cada 10 mil seções |
-|---|---|---|---|---|
-| Lula | 12 | 171.726 | 563 | **32,8** |
-| Flávio | 15 | 326.171 | 369 | **11,3** |
+| Quem venceu no estado | Estados | Seções no total | Seções alteradas | A cada 10 mil seções | Eleitores nas seções alteradas |
+|---|---|---|---|---|---|
+| Lula | 12 | 171.726 | 563 | **32,8** | 174.350 |
+| Flávio | 15 | 326.171 | 369 | **11,3** | 103.503 |
+
+"Seções" são urnas, não votos. Os estados onde Flávio venceu têm mais urnas no total, mas tiveram menos seções alteradas, em número e em proporção.
 
 Os estados onde Lula venceu tiveram quase 3 vezes mais alterações por seção. É o dado mais forte a favor da hipótese de direcionamento. Mas a decisão de mudar é tomada pela zona, escola por escola. Por isso o teste compara cada escola com as vizinhas da mesma zona.
+
+Quem é mais exposto: nas 932 seções alteradas, Lula teve 111.497 votos no 1º turno e Flávio, 89.236. Se a mudança de local reduzir o comparecimento, Lula perde mais votos em número absoluto, mas o efeito é pequeno perto da eleição (277.853 eleitores aptos nessas seções, de 156,3 milhões no país).
 
 ## Como funciona
 
