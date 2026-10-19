@@ -27,7 +27,14 @@ Votos válidos no 1º turno:
 | Mesmas zonas, não alteradas | 17.589 | 48,5% | 44,1% | 7,5% |
 | Brasil | 499.206 | 45,2% | 47,0% | 7,8% |
 
-Os 12 estados onde Lula venceu tiveram 32,8 seções alteradas a cada 10 mil; os 15 onde Flávio venceu, 11,3. O padrão regional já existia em 2022 (PE, MA, PR, RR e PA lideraram as alterações entre turnos), e a decisão de mudar é tomada pela zona, escola por escola. Por isso o teste compara cada escola com as vizinhas da mesma zona.
+Somando os estados por quem venceu no 1º turno:
+
+| Quem venceu no estado | Estados | Seções no total | Seções alteradas | A cada 10 mil seções |
+|---|---|---|---|---|
+| Lula | 12 | 171.726 | 563 | **32,8** |
+| Flávio | 15 | 326.171 | 369 | **11,3** |
+
+Os estados onde Lula venceu tiveram quase 3 vezes mais alterações por seção. É o dado mais forte a favor da hipótese de direcionamento. O padrão regional já existia em 2022 (PE, MA, PR, RR e PA lideraram as alterações entre turnos), e a decisão de mudar é tomada pela zona, escola por escola. Por isso o teste compara cada escola com as vizinhas da mesma zona.
 
 ## Como funciona
 

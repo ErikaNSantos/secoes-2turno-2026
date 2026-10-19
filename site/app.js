@@ -194,6 +194,25 @@ function estados(d) {
   document.getElementById("lead-estados").textContent =
     `Os ${pv.Lula.estados} estados onde Lula venceu tiveram ${fmt(pv.Lula.por_10mil, 1)} seções alteradas a cada 10 mil, quase 3 vezes os ${fmt(pv["Flávio"].por_10mil, 1)} dos ${pv["Flávio"].estados} estados onde Flávio venceu. ` +
     `É o dado mais forte a favor da hipótese de direcionamento, mas a mudança é decidida pela zona eleitoral, escola por escola, e o padrão já existia: em 2022, os estados com mais alterações entre turnos foram PE, MA, PR, RR e PA.`;
+  // Comparação agregada: a taxa por 10 mil seções, lado a lado
+  legenda("leg-vencedor", [["Lula venceu no estado", cores.Lula], ["Flávio venceu no estado", cores["Flávio"]]]);
+  {
+    const lin = [pv.Lula, pv["Flávio"]];
+    const { svg, largura } = svgNovo("g-vencedor", lin.length * 40);
+    const maxv = Math.max(...lin.map((v) => v.por_10mil));
+    const wv = largura - 240;
+    lin.forEach((v, i) => {
+      const y = i * 40;
+      texto(svg, 0, y + 22, `${v.vencedor} venceu`, { class: "rotulo-forte" });
+      const bw = (v.por_10mil / maxv) * wv;
+      const b = barraH(svg, 100, y + 8, bw, 22, cor(cores[v.vencedor]));
+      texto(svg, 100 + bw + 8, y + 24, `${fmt(v.por_10mil, 1)} a cada 10 mil`, { class: "rotulo-forte" });
+      alvo(b, () => `<div class="t-titulo">${v.estados} estados onde ${v.vencedor} venceu</div><div class="t-linha"><b>${fmt(v.alteradas)}</b><span>seções alteradas de ${fmt(v.secoes)}</span></div>`);
+    });
+  }
+  tabela("t-vencedor", [["Quem venceu no estado"], ["Estados", 1], ["Seções no total", 1], ["Seções alteradas", 1], ["A cada 10 mil seções", 1]],
+    [pv.Lula, pv["Flávio"]].map((v) => [v.vencedor, fmt(v.estados), fmt(v.secoes), fmt(v.alteradas), fmt(v.por_10mil, 1)]));
+
   const est = [...d.estados].sort((a, b) => b.por_10mil - a.por_10mil || a.uf.localeCompare(b.uf));
   const linha = 22, esq = 34;
   const { svg, largura } = svgNovo("g-estados", est.length * linha + 4);
