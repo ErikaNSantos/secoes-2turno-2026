@@ -16,6 +16,8 @@
   --accent-ink: #ffffff;
   --series-1: #2a78d6; /* azul */
   --series-2: #eb6834; /* laranja */
+  --lula: #d13b30; /* vermelho */
+  --flavio: #2a78d6; /* azul */
   --series-3: #1baf7a; /* verde-água: 3º espaço da paleta validada */
   --neutral: #b9b6ad; /* barras sem destaque */
   --seq-0: #cde2fb;
@@ -46,6 +48,8 @@
     --accent-ink: #0b0e14;
     --series-1: #3987e5;
     --series-2: #d95926;
+    --lula: #e5534b;
+    --flavio: #3987e5;
     --series-3: #199e70;
     --neutral: #4a5163;
     --seq-0: #13233b;
@@ -76,6 +80,8 @@
   --accent-ink: #0b0e14;
   --series-1: #3987e5;
   --series-2: #d95926;
+  --lula: #e5534b;
+  --flavio: #3987e5;
   --series-3: #199e70;
   --neutral: #4a5163;
   --seq-0: #13233b;

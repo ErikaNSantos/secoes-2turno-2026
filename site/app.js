@@ -104,7 +104,7 @@ function funil(d) {
     const y = topo + i * linha;
     texto(svg, 0, y + 12, f.rotulo);
     const nosso = i >= 2;
-    const b = barraH(svg, 0, y + 18, (f.valor / max) * w, 18, cor(nosso ? "--series-1" : "--neutral"));
+    const b = barraH(svg, 0, y + 18, (f.valor / max) * w, 18, cor(nosso ? "--accent" : "--neutral"));
     texto(svg, (f.valor / max) * w + 6, y + 31, fmt(f.valor), { class: "rotulo-forte" });
     alvo(b, () => `<div class="t-titulo">${f.rotulo}</div><div class="t-linha"><b>${fmt(f.valor)}</b><span>seções</span></div>`);
   });
@@ -119,7 +119,7 @@ function funil(d) {
 
 function votos(d) {
   const nomes = { alteradas: "Seções alteradas", "mesmas zonas, não alteradas": "Mesmas zonas, não alteradas", Brasil: "Brasil" };
-  const series = [["Lula", "lula", "--series-1"], ["Flávio", "flavio", "--series-2"], ["Outros candidatos", "outros", "--neutral"]];
+  const series = [["Lula", "lula", "--lula"], ["Flávio", "flavio", "--flavio"], ["Outros candidatos", "outros", "--neutral"]];
   legenda("leg-votos", series.map(([n, , c]) => [n, c]));
   const g = d.resultados.reais.grupos;
   const linha = 58, topo = 2;
@@ -188,7 +188,7 @@ function permutacao(d) {
 }
 
 function estados(d) {
-  const cores = { Lula: "--series-1", "Flávio": "--series-2" };
+  const cores = { Lula: "--lula", "Flávio": "--flavio" };
   legenda("leg-estados", [["Lula venceu no estado", cores.Lula], ["Flávio venceu no estado", cores["Flávio"]]]);
   const pv = Object.fromEntries(d.por_vencedor.map((v) => [v.vencedor, v]));
   document.getElementById("lead-estados").textContent =
@@ -216,10 +216,10 @@ function estados(d) {
   // Exposição: votos do 1º turno dentro das seções alteradas, em número absoluto
   const alt = d.resultados.reais.grupos.find((g) => g.grupo === "alteradas");
   const brasil = d.resultados.reais.grupos.find((g) => g.grupo === "Brasil");
-  legenda("leg-expostos", [["Lula", "--series-1"], ["Flávio", "--series-2"]]);
+  legenda("leg-expostos", [["Lula", "--lula"], ["Flávio", "--flavio"]]);
   {
     const validos = alt.lula + alt.flavio + alt.outros;
-    const lin = [["Lula", alt.lula, "--series-1"], ["Flávio", alt.flavio, "--series-2"]];
+    const lin = [["Lula", alt.lula, "--lula"], ["Flávio", alt.flavio, "--flavio"]];
     const { svg, largura } = svgNovo("g-expostos", lin.length * 40);
     const maxv = Math.max(...lin.map((l) => l[1]));
     const wv = largura - 290;
