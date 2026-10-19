@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moved polling sections in Brazil's runoff</title>
+    <meta name="description" content="Did the polling place changes for Brazil's 2026 presidential runoff favor either candidate? The electoral court's list matched with first-round votes, section by section, and a permutation test within each electoral zone." />
+    <meta property="og:title" content="Moved polling sections in Brazil's 2026 runoff" />
+    <meta property="og:description" content="Did the polling place changes favor either candidate? Brazilian electoral open data, section by section." />
+    <meta property="og:type" content="website" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Tema antes do primeiro paint: escolha salva > preferência do sistema.
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("tema"); } catch (e) {}
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="alternate" hreflang="pt-BR" href="../" />
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header class="topo">
+      <div class="wrap">
+        <a class="marca" href="./"><span>2º</span>Moved sections</a>
+        <nav>
+          <a href="#metodo">Method</a>
+          <a href="../" lang="pt-BR" hreflang="pt-BR" title="Versão em português">PT</a>
+          <a href="https://github.com/ErikaNSantos/secoes-2turno-2026">Code</a>
+          <button class="btn-tema" id="btn-tema" type="button" aria-label="Toggle theme"></button>
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrap abertura">
+      <span class="selo">Brazil 2026 elections · electoral court list of Oct 19</span>
+      <h1>Did the polling place changes for the runoff favor either candidate?</h1>
+      <p>Brazil's presidential runoff between Lula and Flávio Bolsonaro is on October 25. I matched the official list of polling sections that changed location for the runoff with each section's first-round votes, and tested whether the changes hit one candidate's sections more than chance would explain.</p>
+    </div>
+
+    <main class="wrap">
+      <div class="tiles" id="tiles"></div>
+
+      <div class="veredito" id="veredito"></div>
+
+      <section class="bloco">
+        <h2>From 4,352 down to 932</h2>
+        <p class="lead">The number of moved sections dropped over three days. The electoral court's (TSE) system was counting sections that stayed at the same address as "changed", and the regional courts kept correcting the list.</p>
+        <div class="grade-2">
+          <div class="cartao">
+            <p class="titulo-grafico">Sections moved for the runoff, by source</p>
+            <p class="sub-grafico">The first two bars are figures the TSE gave the press; the last two come from the dashboard list downloaded on Oct 19.</p>
+            <div class="grafico" id="g-funil"></div>
+          </div>
+          <div class="cartao texto">
+            <p>Even the Oct 19 list still had sections that did not move. I checked all 1,106, one by one, against the TSE polling place registry:</p>
+            <div id="limpeza"></div>
+            <p>The analysis uses the <strong>932</strong>. Some of them may still be just a different spelling of the same address ("Avenida Fernando Bezerra" vs. "Avenida Fernando Bezerra, S/N"), so 932 is an upper bound.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="bloco">
+        <h2>How these sections voted in the first round</h2>
+        <p class="lead">In the moved sections, Lula got a larger share of valid votes than the national average. But they are concentrated in the Northeast, so the fair comparison is with the other sections in the same electoral zones.</p>
+        <div class="cartao">
+          <p class="titulo-grafico">Valid votes for president, first round (Oct 4)</p>
+          <p class="sub-grafico">Valid = votes for a candidate. Blank and null votes are in the table, as a share of turnout.</p>
+          <div class="legenda" id="leg-votos"></div>
+          <div class="grafico" id="g-votos"></div>
+          <details class="tabela"><summary>Show table</summary><div class="tabela-rolagem" id="t-votos"></div></details>
+        </div>
+      </section>
+
+      <section class="bloco">
+        <h2>The test: are the schools that moved different from their neighbors?</h2>
+        <p class="lead">If someone deliberately picked the schools where one candidate is strongest, the moved schools would lean more toward that candidate than the other schools in the same zone. The test compares what happened with 5,000 random draws. (In Brazil, most polling places are schools.)</p>
+        <div class="grade-2">
+          <div class="cartao">
+            <p class="titulo-grafico">Lula's share (Lula vs. Flávio) in moved schools: actual × 5,000 draws</p>
+            <p class="sub-grafico">Each bar is how many draws landed on that share. The gray band holds 95% of the draws.</p>
+            <div class="grafico" id="g-perm"></div>
+          </div>
+          <div class="cartao texto">
+            <ol class="passos">
+              <li>In each of the <strong id="n-zonas"></strong> electoral zones with at least one change, I counted how many schools actually moved.</li>
+              <li>In each zone, I drew the same number of schools at random and computed Lula's share of the votes cast for Lula or Flávio in those schools.</li>
+              <li>I repeated the draw 5,000 times. The result is what a change with no political criterion at all would produce.</li>
+            </ol>
+            <p id="txt-perm"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="bloco">
+        <h2>Where the changes happened</h2>
+        <p class="lead" id="lead-estados"></p>
+        <div class="cartao" style="margin-bottom:16px">
+          <p class="titulo-grafico">States grouped by first-round winner</p>
+          <p class="sub-grafico">Sections with a different place and address. Voters abroad excluded.</p>
+          <div class="legenda" id="leg-vencedor"></div>
+          <div class="grafico" id="g-vencedor"></div>
+          <div class="tabela-rolagem" id="t-vencedor" style="margin-top:12px"></div>
+          <p class="sub-grafico" style="margin-top:12px">"Sections" are ballot boxes, not votes. The states Flávio won have more ballot boxes in total, but had fewer moved sections, both in number and in proportion.</p>
+        </div>
+        <div class="cartao" style="margin-bottom:16px">
+          <p class="titulo-grafico">Who is more exposed: how voters in the moved sections voted</p>
+          <p class="sub-grafico">First-round votes in the 932 moved sections. If the move keeps people from voting, these are the votes at stake.</p>
+          <div class="legenda" id="leg-expostos"></div>
+          <div class="grafico" id="g-expostos"></div>
+          <p class="texto" id="txt-expostos" style="margin-top:8px"></p>
+        </div>
+        <div class="cartao">
+          <p class="titulo-grafico">Moved sections per 10,000 sections in the state</p>
+          <p class="sub-grafico">Color: the candidate with the most votes in the state in the first round. States with no changes are at the bottom.</p>
+          <div class="legenda" id="leg-estados"></div>
+          <div class="grafico" id="g-estados"></div>
+          <details class="tabela"><summary>Show table</summary><div class="tabela-rolagem" id="t-estados"></div></details>
+        </div>
+      </section>
+
+      <section class="bloco" id="metodo">
+        <h2>Method and limitations</h2>
+        <div class="texto metodo">
+          <p><strong>Why compare within the zone.</strong> Polling place changes happen more where there are rural schools, power outages and heavy rain at this time of year, and those regions voted more for Lula. Comparing the moved sections with the whole country shows a difference that comes from the place, not from the choice. Within the same electoral zone, the city, the urban or rural profile and the judge who decides are the same on both sides.</p>
+          <p><strong>Why the unit is the school.</strong> The decision to move is made per polling place: when a school closes, all of its sections move together. Counting section by section would give too much weight to large schools.</p>
+          <p><strong>The 95% band.</strong> It is the range that holds 95% of the draws, and describes what chance produces. It is not a confidence interval: it does not estimate a true value, it only shows the expected variation if schools had been picked with no criterion. The <code>p</code> value is the share of draws that landed as far from the average as the actual value, or farther. Below 0.05, the result would be considered unusual.</p>
+          <p><strong>What the test does not answer.</strong> Correlation does not prove intent, and the absence of correlation does not prove the change didn't hurt anyone. The real impact can be measured after Oct 25, by comparing runoff abstention in the moved sections with their neighbors.</p>
+          <ul>
+            <li>The dashboard list has no history: the TSE only shows the current version, and the Oct 16 and Oct 18 versions exist only as figures given to the press.</li>
+            <li>The open polling place registry lags behind the dashboard. All 1,106 dashboard sections were found in the registry, but 138 still show the same place in both rounds there.</li>
+            <li>Some regional courts' reports don't match the national list (the Pernambuco court mentions 6 sections; the registry shows 88 with a different address). From here there is no way to tell which source is outdated.</li>
+            <li>With the full list of 1,106 sections, the result is the same: <span id="txt-todas"></span>.</li>
+          </ul>
+          <p><strong>Sources.</strong> TSE (Brazil's Superior Electoral Court), <a href="https://dadosabertos.tse.jus.br/">Open Data Portal</a> (voters by polling place and votes by section, 2026) and the Voter Statistics dashboard report "Seções Eleitorais Alteradas no Segundo Turno", collected on Oct 19, 2026 at 10:33 a.m. (Brasília time).</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Made by <a href="https://erikansantos.github.io">Érika Nogueira Santos</a> with Brazilian electoral open data.</span>
+        <a href="https://github.com/ErikaNSantos/secoes-2turno-2026">Code and data on GitHub</a>
+      </div>
+    </footer>
+
+    <div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+    <script src="../app.js"></script>
+  </body>
+</html>

@@ -1,16 +1,20 @@
 // Seções alteradas no 2º turno. SVG desenhado à mão, sem biblioteca: são gráficos simples.
 
 const NS = "http://www.w3.org/2000/svg";
-const fmt = (v, d = 0) => v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+// A mesma página em dois idiomas: /index.html (pt) e /en/index.html (en) carregam este arquivo.
+const EN = document.documentElement.lang === "en";
+const L = (pt, en) => (EN ? en : pt);
+const RAIZ = new URL(".", document.currentScript.src);
+const fmt = (v, d = 0) => v.toLocaleString(L("pt-BR", "en-US"), { minimumFractionDigits: d, maximumFractionDigits: d });
 const pct = (v, d = 1) => fmt(v, d) + "%";
 const cor = (nome) => getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
 
 // Mesmas fontes citadas no texto: as duas primeiras são números do TSE divulgados à imprensa.
 const FUNIL = [
-  { rotulo: "16/10 · TSE à imprensa", valor: 4352 },
-  { rotulo: "18/10 · TSE à imprensa", valor: 2033 },
-  { rotulo: "19/10 · lista do painel", valor: null, chave: "secoes" },
-  { rotulo: "19/10 · com endereço diferente", valor: null, chave: "reais" },
+  { rotulo: L("16/10 · TSE à imprensa", "Oct 16 · TSE to the press"), valor: 4352 },
+  { rotulo: L("18/10 · TSE à imprensa", "Oct 18 · TSE to the press"), valor: 2033 },
+  { rotulo: L("19/10 · lista do painel", "Oct 19 · dashboard list"), valor: null, chave: "secoes" },
+  { rotulo: L("19/10 · com endereço diferente", "Oct 19 · different address"), valor: null, chave: "reais" },
 ];
 
 function el(tag, attrs = {}, pai) {
@@ -82,16 +86,17 @@ function tabela(id, cab, linhas) {
 function tiles(d) {
   const t = d.resultados.reais.teste;
   const itens = [
-    ["Seções na lista do TSE", fmt(d.painel.secoes), "painel de 19/10"],
-    ["Com local e endereço diferentes", fmt(d.painel.reais), fmt(d.painel.eleitorado_reais) + " eleitores"],
-    ["Fatia do Lula nas escolas alteradas", pct(100 * t.observado), "acaso: " + pct(100 * t.media_acaso)],
-    ["p do teste", fmt(t.p, 2), "abaixo de 0,05 seria fora do normal"],
+    [L("Seções na lista do TSE", "Sections on the TSE list"), fmt(d.painel.secoes), L("painel de 19/10", "dashboard, Oct 19")],
+    [L("Com local e endereço diferentes", "Different place and address"), fmt(d.painel.reais), fmt(d.painel.eleitorado_reais) + L(" eleitores", " voters")],
+    [L("Fatia do Lula nas escolas alteradas", "Lula's share in moved schools"), pct(100 * t.observado), L("acaso: ", "chance: ") + pct(100 * t.media_acaso)],
+    [L("p do teste", "Test p-value"), fmt(t.p, 2), L("abaixo de 0,05 seria fora do normal", "below 0.05 would be unusual")],
   ];
   document.getElementById("tiles").innerHTML = itens
     .map(([r, v, det]) => `<div class="cartao tile"><div class="rotulo">${r}</div><div class="valor">${v}</div><div class="detalhe">${det}</div></div>`)
     .join("");
   document.getElementById("veredito").innerHTML =
-    `<p><strong>Não há sinal de direcionamento.</strong> Dentro das mesmas zonas eleitorais, as escolas que mudaram de local votaram como escolas sorteadas ao acaso: ${pct(100 * t.observado)} de Lula, contra ${pct(100 * t.faixa95[0])} a ${pct(100 * t.faixa95[1])} esperados pelo acaso.</p>`;
+    L(`<p><strong>Não há sinal de direcionamento.</strong> Dentro das mesmas zonas eleitorais, as escolas que mudaram de local votaram como escolas sorteadas ao acaso: ${pct(100 * t.observado)} de Lula, contra ${pct(100 * t.faixa95[0])} a ${pct(100 * t.faixa95[1])} esperados pelo acaso.</p>`,
+      `<p><strong>No sign of targeting.</strong> Within the same electoral zones, the schools that moved voted like schools drawn at random: ${pct(100 * t.observado)} for Lula, against ${pct(100 * t.faixa95[0])} to ${pct(100 * t.faixa95[1])} expected by chance.</p>`);
 }
 
 function funil(d) {
@@ -106,20 +111,20 @@ function funil(d) {
     const nosso = i >= 2;
     const b = barraH(svg, 0, y + 18, (f.valor / max) * w, 18, cor(nosso ? "--accent" : "--neutral"));
     texto(svg, (f.valor / max) * w + 6, y + 31, fmt(f.valor), { class: "rotulo-forte" });
-    alvo(b, () => `<div class="t-titulo">${f.rotulo}</div><div class="t-linha"><b>${fmt(f.valor)}</b><span>seções</span></div>`);
+    alvo(b, () => `<div class="t-titulo">${f.rotulo}</div><div class="t-linha"><b>${fmt(f.valor)}</b><span>${L("seções", "sections")}</span></div>`);
   });
   const p = d.painel;
   document.getElementById("limpeza").innerHTML = `<table><tbody>
-    <tr><td>Na lista do painel</td><td class="num">${fmt(p.secoes)}</td></tr>
-    <tr><td>Mesmo local nos dois turnos no cadastro</td><td class="num">−${fmt(p.mesmo_local)}</td></tr>
-    <tr><td>Local mudou de nome, endereço idêntico</td><td class="num">−${fmt(p.mesmo_endereco)}</td></tr>
-    <tr><td><strong>Local e endereço diferentes</strong></td><td class="num"><strong>${fmt(p.reais)}</strong></td></tr>
+    <tr><td>${L("Na lista do painel", "On the dashboard list")}</td><td class="num">${fmt(p.secoes)}</td></tr>
+    <tr><td>${L("Mesmo local nos dois turnos no cadastro", "Same place in both rounds in the registry")}</td><td class="num">−${fmt(p.mesmo_local)}</td></tr>
+    <tr><td>${L("Local mudou de nome, endereço idêntico", "Place renamed, same address")}</td><td class="num">−${fmt(p.mesmo_endereco)}</td></tr>
+    <tr><td><strong>${L("Local e endereço diferentes", "Different place and address")}</strong></td><td class="num"><strong>${fmt(p.reais)}</strong></td></tr>
   </tbody></table>`;
 }
 
 function votos(d) {
-  const nomes = { alteradas: "Seções alteradas", "mesmas zonas, não alteradas": "Mesmas zonas, não alteradas", Brasil: "Brasil" };
-  const series = [["Lula", "lula", "--lula"], ["Flávio", "flavio", "--flavio"], ["Outros candidatos", "outros", "--neutral"]];
+  const nomes = { alteradas: L("Seções alteradas", "Moved sections"), "mesmas zonas, não alteradas": L("Mesmas zonas, não alteradas", "Same zones, not moved"), Brasil: L("Brasil", "Brazil") };
+  const series = [["Lula", "lula", "--lula"], ["Flávio", "flavio", "--flavio"], [L("Outros candidatos", "Other candidates"), "outros", "--neutral"]];
   legenda("leg-votos", series.map(([n, , c]) => [n, c]));
   const g = d.resultados.reais.grupos;
   const linha = 58, topo = 2;
@@ -127,7 +132,7 @@ function votos(d) {
   g.forEach((r, i) => {
     const y = topo + i * linha;
     const validos = r.lula + r.flavio + r.outros;
-    texto(svg, 0, y + 12, `${nomes[r.grupo]} · ${fmt(r.secoes)} seções`, { class: "rotulo-forte" });
+    texto(svg, 0, y + 12, `${nomes[r.grupo]} · ${fmt(r.secoes)} ${L("seções", "sections")}`, { class: "rotulo-forte" });
     let x = 0;
     series.forEach(([nome, k, c]) => {
       const v = (100 * r[k]) / validos;
@@ -135,19 +140,19 @@ function votos(d) {
       // 2px de fundo entre os segmentos
       const b = el("rect", { x: x + (x ? 1 : 0), y: y + 20, width: Math.max(w - (x ? 2 : 1), 0), height: 22, fill: cor(c), rx: 3, class: "barra" }, svg);
       if (w > 64) texto(svg, x + 8, y + 36, pct(v), { style: "fill:#fff;font-weight:600" });
-      alvo(b, () => `<div class="t-titulo">${nomes[r.grupo]}</div><div class="t-linha"><i style="background:${cor(c)}"></i><b>${pct(v, 2)}</b><span>${nome} · ${fmt(r[k])} votos</span></div>`);
+      alvo(b, () => `<div class="t-titulo">${nomes[r.grupo]}</div><div class="t-linha"><i style="background:${cor(c)}"></i><b>${pct(v, 2)}</b><span>${nome} · ${fmt(r[k])} ${L("votos", "votes")}</span></div>`);
       x += w;
     });
   });
   tabela("t-votos",
-    [["Grupo"], ["Seções", 1], ["Aptos", 1], ["Comparecimento", 1], ["Lula", 1], ["Flávio", 1], ["Outros", 1], ["Brancos", 1], ["Nulos", 1], ["Lula venceu", 1], ["Flávio venceu", 1]],
+    [[L("Grupo", "Group")], [L("Seções", "Sections"), 1], [L("Aptos", "Registered"), 1], [L("Comparecimento", "Turnout"), 1], ["Lula", 1], ["Flávio", 1], [L("Outros", "Others"), 1], [L("Brancos", "Blank"), 1], [L("Nulos", "Null"), 1], [L("Lula venceu", "Lula won"), 1], [L("Flávio venceu", "Flávio won"), 1]],
     g.map((r) => {
       const v = r.lula + r.flavio + r.outros;
       const c = r.comparecimento;
       return [nomes[r.grupo], fmt(r.secoes), fmt(r.aptos), pct((100 * c) / r.aptos),
         `${fmt(r.lula)} (${pct((100 * r.lula) / v)})`, `${fmt(r.flavio)} (${pct((100 * r.flavio) / v)})`, `${fmt(r.outros)} (${pct((100 * r.outros) / v)})`,
         `${fmt(r.branco)} (${pct((100 * r.branco) / c)})`, `${fmt(r.nulo)} (${pct((100 * r.nulo) / c)})`,
-        fmt(r.lula_venceu) + " seções", fmt(r.flavio_venceu) + " seções"];
+        fmt(r.lula_venceu) + L(" seções", " sections"), fmt(r.flavio_venceu) + L(" seções", " sections")];
     }));
 }
 
@@ -166,36 +171,43 @@ function permutacao(d) {
   h.contagem.forEach((c, i) => {
     const ini = x0 + i * h.passo;
     const b = barraV(svg, xs(ini) + 1, base, Math.max(bw - 2, 1), (c / max) * (base - 30), cor("--neutral"), 2);
-    alvo(b, () => `<div class="t-titulo">${pct(100 * ini, 1)} a ${pct(100 * (ini + h.passo), 1)}</div><div class="t-linha"><b>${fmt(c)}</b><span>sorteios</span></div>`);
+    alvo(b, () => `<div class="t-titulo">${pct(100 * ini, 1)} ${L("a", "to")} ${pct(100 * (ini + h.passo), 1)}</div><div class="t-linha"><b>${fmt(c)}</b><span>${L("sorteios", "draws")}</span></div>`);
   });
   el("line", { x1: esq, x2: largura - esq, y1: base, y2: base, stroke: cor("--axis") }, svg);
   const xo = xs(t.observado);
   el("line", { x1: xo, x2: xo, y1: 6, y2: base, class: "linha-obs" }, svg);
   const anc = xo > largura * 0.7 ? "end" : "start";
-  texto(svg, xo + (anc === "end" ? -6 : 6), 14, "real: " + pct(100 * t.observado), { class: "rotulo-forte", "text-anchor": anc });
+  texto(svg, xo + (anc === "end" ? -6 : 6), 14, L("real: ", "actual: ") + pct(100 * t.observado), { class: "rotulo-forte", "text-anchor": anc });
   // Eixo: de ponto em ponto percentual
   for (let v = Math.ceil(x0 * 100); v <= Math.floor(x1 * 100); v++) {
     texto(svg, xs(v / 100), base + 18, v + "%", { "text-anchor": "middle" });
   }
-  texto(svg, xs((t.faixa95[0] + t.faixa95[1]) / 2), base + 36, "faixa de 95% do acaso", { "text-anchor": "middle" });
+  texto(svg, xs((t.faixa95[0] + t.faixa95[1]) / 2), base + 36, L("faixa de 95% do acaso", "95% range of chance"), { "text-anchor": "middle" });
 
   document.getElementById("txt-perm").innerHTML =
-    `Nas <strong>${fmt(t.escolas_alteradas)}</strong> escolas que mudaram (entre ${fmt(t.escolas_total)} escolas dessas zonas), Lula teve <strong>${pct(100 * t.observado)}</strong> dos votos dados a Lula ou Flávio. Os sorteios deram em média ${pct(100 * t.media_acaso)}, e 95% deles ficaram entre ${pct(100 * t.faixa95[0])} e ${pct(100 * t.faixa95[1])}. ` +
-    `O valor real está dentro da faixa, com <strong>p = ${fmt(t.p, 2)}</strong>: em ${fmt(100 * t.p, 0)}% dos sorteios, o acaso ficou tão longe da média quanto o real, ou mais. Para indicar que escolas lulistas foram escolhidas de propósito, o real teria que passar de ${pct(100 * t.faixa95[1])}; para indicar o contrário, ficar abaixo de ${pct(100 * t.faixa95[0])}.`;
+    L(`Nas <strong>${fmt(t.escolas_alteradas)}</strong> escolas que mudaram (entre ${fmt(t.escolas_total)} escolas dessas zonas), Lula teve <strong>${pct(100 * t.observado)}</strong> dos votos dados a Lula ou Flávio. Os sorteios deram em média ${pct(100 * t.media_acaso)}, e 95% deles ficaram entre ${pct(100 * t.faixa95[0])} e ${pct(100 * t.faixa95[1])}. ` +
+      `O valor real está dentro da faixa, com <strong>p = ${fmt(t.p, 2)}</strong>: em ${fmt(100 * t.p, 0)}% dos sorteios, o acaso ficou tão longe da média quanto o real, ou mais. Para indicar que escolas lulistas foram escolhidas de propósito, o real teria que passar de ${pct(100 * t.faixa95[1])}; para indicar o contrário, ficar abaixo de ${pct(100 * t.faixa95[0])}.`,
+      `In the <strong>${fmt(t.escolas_alteradas)}</strong> schools that moved (out of ${fmt(t.escolas_total)} schools in those zones), Lula got <strong>${pct(100 * t.observado)}</strong> of the votes cast for Lula or Flávio. The draws averaged ${pct(100 * t.media_acaso)}, and 95% of them fell between ${pct(100 * t.faixa95[0])} and ${pct(100 * t.faixa95[1])}. ` +
+      `The actual value is inside that range, with <strong>p = ${fmt(t.p, 2)}</strong>: in ${fmt(100 * t.p, 0)}% of the draws, chance landed as far from the average as the actual value, or farther. To suggest that pro-Lula schools were picked on purpose, the actual value would have to exceed ${pct(100 * t.faixa95[1])}; to suggest the opposite, fall below ${pct(100 * t.faixa95[0])}.`);
   const td = d.resultados.todas.teste;
   document.getElementById("txt-todas").textContent =
-    `${pct(100 * td.observado)} de Lula nas escolas alteradas, faixa do acaso de ${pct(100 * td.faixa95[0])} a ${pct(100 * td.faixa95[1])}, p = ${fmt(td.p, 2)}`;
+    L(`${pct(100 * td.observado)} de Lula nas escolas alteradas, faixa do acaso de ${pct(100 * td.faixa95[0])} a ${pct(100 * td.faixa95[1])}, p = ${fmt(td.p, 2)}`,
+      `${pct(100 * td.observado)} for Lula in moved schools, chance range ${pct(100 * td.faixa95[0])} to ${pct(100 * td.faixa95[1])}, p = ${fmt(td.p, 2)}`);
 }
 
 function estados(d) {
   const cores = { Lula: "--lula", "Flávio": "--flavio" };
-  legenda("leg-estados", [["Lula venceu no estado", cores.Lula], ["Flávio venceu no estado", cores["Flávio"]]]);
+  const venceu = (nome) => L(`${nome} venceu`, `${nome} won`);
+  const legVenc = [[L("Lula venceu no estado", "Lula won the state"), cores.Lula], [L("Flávio venceu no estado", "Flávio won the state"), cores["Flávio"]]];
+  legenda("leg-estados", legVenc);
   const pv = Object.fromEntries(d.por_vencedor.map((v) => [v.vencedor, v]));
   document.getElementById("lead-estados").textContent =
-    `Os ${pv.Lula.estados} estados onde Lula venceu tiveram ${fmt(pv.Lula.por_10mil, 1)} seções alteradas a cada 10 mil, quase 3 vezes os ${fmt(pv["Flávio"].por_10mil, 1)} dos ${pv["Flávio"].estados} estados onde Flávio venceu. ` +
-    `É o dado mais forte a favor da hipótese de direcionamento. Mas a mudança é decidida pela zona eleitoral, escola por escola, e por isso o teste acima compara cada escola com as vizinhas da mesma zona.`;
+    L(`Os ${pv.Lula.estados} estados onde Lula venceu tiveram ${fmt(pv.Lula.por_10mil, 1)} seções alteradas a cada 10 mil, quase 3 vezes os ${fmt(pv["Flávio"].por_10mil, 1)} dos ${pv["Flávio"].estados} estados onde Flávio venceu. ` +
+      `É o dado mais forte a favor da hipótese de direcionamento. Mas a mudança é decidida pela zona eleitoral, escola por escola, e por isso o teste acima compara cada escola com as vizinhas da mesma zona.`,
+      `The ${pv.Lula.estados} states Lula won had ${fmt(pv.Lula.por_10mil, 1)} moved sections per 10,000, almost 3 times the ${fmt(pv["Flávio"].por_10mil, 1)} in the ${pv["Flávio"].estados} states Flávio won. ` +
+      `This is the strongest data point in favor of the targeting hypothesis. But the move is decided by the electoral zone, school by school, which is why the test above compares each school with its neighbors in the same zone.`);
   // Comparação agregada: a taxa por 10 mil seções, lado a lado
-  legenda("leg-vencedor", [["Lula venceu no estado", cores.Lula], ["Flávio venceu no estado", cores["Flávio"]]]);
+  legenda("leg-vencedor", legVenc);
   {
     const lin = [pv.Lula, pv["Flávio"]];
     const { svg, largura } = svgNovo("g-vencedor", lin.length * 40);
@@ -203,14 +215,14 @@ function estados(d) {
     const wv = largura - 240;
     lin.forEach((v, i) => {
       const y = i * 40;
-      texto(svg, 0, y + 22, `${v.vencedor} venceu`, { class: "rotulo-forte" });
+      texto(svg, 0, y + 22, venceu(v.vencedor), { class: "rotulo-forte" });
       const bw = (v.por_10mil / maxv) * wv;
       const b = barraH(svg, 100, y + 8, bw, 22, cor(cores[v.vencedor]));
-      texto(svg, 100 + bw + 8, y + 24, `${fmt(v.por_10mil, 1)} a cada 10 mil`, { class: "rotulo-forte" });
-      alvo(b, () => `<div class="t-titulo">${v.estados} estados onde ${v.vencedor} venceu</div><div class="t-linha"><b>${fmt(v.alteradas)}</b><span>seções alteradas de ${fmt(v.secoes)}</span></div>`);
+      texto(svg, 100 + bw + 8, y + 24, `${fmt(v.por_10mil, 1)} ${L("a cada 10 mil", "per 10,000")}`, { class: "rotulo-forte" });
+      alvo(b, () => L(`<div class="t-titulo">${v.estados} estados onde ${v.vencedor} venceu</div><div class="t-linha"><b>${fmt(v.alteradas)}</b><span>seções alteradas de ${fmt(v.secoes)}</span></div>`, `<div class="t-titulo">${v.estados} states ${v.vencedor} won</div><div class="t-linha"><b>${fmt(v.alteradas)}</b><span>moved sections out of ${fmt(v.secoes)}</span></div>`));
     });
   }
-  tabela("t-vencedor", [["Quem venceu no estado"], ["Estados", 1], ["Seções no total", 1], ["Seções alteradas", 1], ["A cada 10 mil seções", 1], ["Eleitores nas seções alteradas", 1]],
+  tabela("t-vencedor", [[L("Quem venceu no estado", "State winner")], [L("Estados", "States"), 1], [L("Seções no total", "Total sections"), 1], [L("Seções alteradas", "Moved sections"), 1], [L("A cada 10 mil seções", "Per 10,000 sections"), 1], [L("Eleitores nas seções alteradas", "Voters in moved sections"), 1]],
     [pv.Lula, pv["Flávio"]].map((v) => [v.vencedor, fmt(v.estados), fmt(v.secoes), fmt(v.alteradas), fmt(v.por_10mil, 1), fmt(v.aptos_alteradas)]));
 
   // Exposição: votos do 1º turno dentro das seções alteradas, em número absoluto
@@ -228,14 +240,17 @@ function estados(d) {
       texto(svg, 0, y + 22, nome, { class: "rotulo-forte" });
       const bw = (v / maxv) * wv;
       const b = barraH(svg, 70, y + 8, bw, 22, cor(c));
-      texto(svg, 70 + bw + 8, y + 24, `${fmt(v)} votos (${pct((100 * v) / validos)} dos válidos)`, { class: "rotulo-forte" });
-      alvo(b, () => `<div class="t-titulo">Seções alteradas · 1º turno</div><div class="t-linha"><i style="background:${cor(c)}"></i><b>${fmt(v)}</b><span>votos em ${nome}</span></div>`);
+      texto(svg, 70 + bw + 8, y + 24, L(`${fmt(v)} votos (${pct((100 * v) / validos)} dos válidos)`, `${fmt(v)} votes (${pct((100 * v) / validos)} of valid votes)`), { class: "rotulo-forte" });
+      alvo(b, () => `<div class="t-titulo">${L("Seções alteradas · 1º turno", "Moved sections · 1st round")}</div><div class="t-linha"><i style="background:${cor(c)}"></i><b>${fmt(v)}</b><span>${L("votos em", "votes for")} ${nome}</span></div>`);
     });
   }
   document.getElementById("txt-expostos").innerHTML =
-    `Lula teve <strong>${fmt(alt.lula - alt.flavio)} votos a mais</strong> que Flávio nessas seções, então, se a mudança de local reduzir o comparecimento, ele perde mais votos em número absoluto. ` +
-    `O efeito é pequeno perto da eleição: são ${fmt(alt.aptos)} eleitores aptos nas seções alteradas, de ${fmt(brasil.aptos)} no país. ` +
-    `E isso mostra quem é mais exposto, não quem foi escolhido como alvo: dentro das zonas, as escolas alteradas votam como as vizinhas.`;
+    L(`Lula teve <strong>${fmt(alt.lula - alt.flavio)} votos a mais</strong> que Flávio nessas seções, então, se a mudança de local reduzir o comparecimento, ele perde mais votos em número absoluto. ` +
+      `O efeito é pequeno perto da eleição: são ${fmt(alt.aptos)} eleitores aptos nas seções alteradas, de ${fmt(brasil.aptos)} no país. ` +
+      `E isso mostra quem é mais exposto, não quem foi escolhido como alvo: dentro das zonas, as escolas alteradas votam como as vizinhas.`,
+      `Lula had <strong>${fmt(alt.lula - alt.flavio)} more votes</strong> than Flávio in these sections, so if the move lowers turnout, he loses more votes in absolute terms. ` +
+      `The effect is small for an election this size: ${fmt(alt.aptos)} registered voters in moved sections, out of ${fmt(brasil.aptos)} nationwide. ` +
+      `And this shows who is more exposed, not who was targeted: within the zones, moved schools vote like their neighbors.`);
 
   const est = [...d.estados].sort((a, b) => b.por_10mil - a.por_10mil || a.uf.localeCompare(b.uf));
   const linha = 22, esq = 34;
@@ -248,13 +263,13 @@ function estados(d) {
     const bw = (e.por_10mil / max) * w;
     const alvoRect = el("rect", { x: 0, y, width: largura, height: linha, fill: "transparent" }, svg);
     barraH(svg, esq, y + 3, bw, linha - 8, cor(cores[e.vencedor]));
-    texto(svg, esq + bw + 6, y + 14, `${fmt(e.por_10mil, 1)} (${fmt(e.alteradas)} ${e.alteradas === 1 ? "seção" : "seções"})`);
-    alvo(alvoRect, () => `<div class="t-titulo">${e.uf} · ${e.vencedor} venceu (${pct(e.vencedor === "Lula" ? e.pct_lula : e.pct_flavio)} dos válidos)</div>` +
-      `<div class="t-linha"><b>${fmt(e.alteradas)}</b><span>seções alteradas de ${fmt(e.secoes)}</span></div>` +
-      (e.alteradas ? `<div class="t-linha"><span>Nas alteradas: Lula ${pct(e.pct_lula_alt)} · Flávio ${pct(e.pct_flavio_alt)}</span></div>` : ""));
+    texto(svg, esq + bw + 6, y + 14, `${fmt(e.por_10mil, 1)} (${fmt(e.alteradas)} ${e.alteradas === 1 ? L("seção", "section") : L("seções", "sections")})`);
+    alvo(alvoRect, () => `<div class="t-titulo">${e.uf} · ${venceu(e.vencedor)} (${pct(e.vencedor === "Lula" ? e.pct_lula : e.pct_flavio)} ${L("dos válidos", "of valid votes")})</div>` +
+      `<div class="t-linha"><b>${fmt(e.alteradas)}</b><span>${L("seções alteradas de", "moved sections out of")} ${fmt(e.secoes)}</span></div>` +
+      (e.alteradas ? `<div class="t-linha"><span>${L("Nas alteradas", "In moved sections")}: Lula ${pct(e.pct_lula_alt)} · Flávio ${pct(e.pct_flavio_alt)}</span></div>` : ""));
   });
   tabela("t-estados",
-    [["UF"], ["Seções", 1], ["Alteradas", 1], ["Por 10 mil", 1], ["Venceu no estado"], ["Lula no estado", 1], ["Flávio no estado", 1], ["Lula nas alteradas", 1], ["Flávio nas alteradas", 1]],
+    [[L("UF", "State")], [L("Seções", "Sections"), 1], [L("Alteradas", "Moved"), 1], [L("Por 10 mil", "Per 10,000"), 1], [L("Venceu no estado", "State winner")], [L("Lula no estado", "Lula, state"), 1], [L("Flávio no estado", "Flávio, state"), 1], [L("Lula nas alteradas", "Lula, moved"), 1], [L("Flávio nas alteradas", "Flávio, moved"), 1]],
     [...d.estados].sort((a, b) => b.alteradas - a.alteradas || a.uf.localeCompare(b.uf)).map((e) => [
       e.uf, fmt(e.secoes), fmt(e.alteradas), fmt(e.por_10mil, 1), e.vencedor, pct(e.pct_lula), pct(e.pct_flavio),
       e.alteradas ? pct(e.pct_lula_alt) : "", e.alteradas ? pct(e.pct_flavio_alt) : ""]));
@@ -292,6 +307,6 @@ iconeTema();
 let espera;
 window.addEventListener("resize", () => { clearTimeout(espera); espera = setTimeout(desenhar, 150); });
 
-fetch("data/resultados.json")
+fetch(new URL("data/resultados.json", RAIZ))
   .then((r) => r.json())
   .then((d) => { DADOS = d; tiles(d); desenhar(); });

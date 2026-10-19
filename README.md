@@ -2,7 +2,7 @@
 
 As mudanças de local de votação para o 2º turno de 2026 favoreceram algum candidato? Cruzei a lista oficial do TSE de seções alteradas com os votos do 1º turno de cada seção e testei, dentro de cada zona eleitoral, se as escolas que mudaram de local votaram diferente das que ficaram.
 
-**Página:** https://erikansantos.github.io/secoes-2turno-2026/
+**Página:** https://erikansantos.github.io/secoes-2turno-2026/ (em inglês: https://erikansantos.github.io/secoes-2turno-2026/en/)
 
 **Resposta curta:** não há sinal de direcionamento. Nas 256 escolas que mudaram de local, Lula teve 54,5% dos votos dados a Lula ou Flávio. Sorteando 5.000 vezes o mesmo número de escolas em cada zona, 95% dos sorteios ficaram entre 53,1% e 56,3% (p = 0,75).
 
