@@ -21,20 +21,6 @@ def criar_locais(con: duckdb.DuckDBPyConnection, csv: Path, ano: int) -> None:
     """)
 
 
-def criar_mudancas(con: duckdb.DuckDBPyConnection, ano: int) -> None:
-    """Cruza o 1º e o 2º turno de cada seção pelos dois critérios de "alteração"."""
-    con.execute(f"""
-        create or replace table mudancas_{ano} as
-        select t2.uf, t2.mun, t2.zona, t2.secao, t2.apto,
-               t1.local_votacao l1, t2.local_votacao l2, t2.local_original lorig,
-               t1.local_votacao <> t2.local_votacao entre_turnos,
-               t2.local_votacao <> t2.local_original vs_original
-        from locais_{ano} t2
-        join locais_{ano} t1 using (uf, mun, zona, secao)
-        where t1.turno = 1 and t2.turno = 2
-    """)
-
-
 def criar_votos(con: duckdb.DuckDBPyConnection, csv: Path) -> None:
     """Votos para presidente no 1º turno, uma linha por seção.
 

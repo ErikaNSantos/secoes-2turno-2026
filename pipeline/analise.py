@@ -1,4 +1,4 @@
-"""As análises: votos por grupo, estados, teste de permutação e série histórica."""
+"""As análises: votos por grupo, estados e teste de permutação."""
 import duckdb
 import numpy as np
 import pandas as pd
@@ -109,20 +109,3 @@ def permutacao(esc: pd.DataFrame, n: int = 5000, semente: int = 7) -> dict:
         "sims": sims,
     }
 
-
-def historico(con: duckdb.DuckDBPyConnection, anos: list[int]) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Quantas seções mudaram em cada eleição, pelos dois critérios, no total e por UF."""
-    total, por_uf = [], []
-    for ano in anos:
-        total.append(con.execute(f"""
-            select {ano} ano, count(*) secoes,
-                   sum(entre_turnos::int)::bigint entre_turnos,
-                   sum(case when entre_turnos then apto end)::bigint aptos_entre_turnos,
-                   sum(vs_original::int)::bigint vs_original
-            from mudancas_{ano}
-        """).df())
-        por_uf.append(con.execute(f"""
-            select {ano} ano, uf, count(*) secoes, sum(entre_turnos::int)::bigint entre_turnos, sum(vs_original::int)::bigint vs_original
-            from mudancas_{ano} group by uf
-        """).df())
-    return pd.concat(total, ignore_index=True), pd.concat(por_uf, ignore_index=True)

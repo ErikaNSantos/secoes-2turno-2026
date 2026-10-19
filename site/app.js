@@ -1,4 +1,4 @@
-// Seções alteradas no 2º turno. SVG desenhado à mão, sem biblioteca: são cinco gráficos simples.
+// Seções alteradas no 2º turno. SVG desenhado à mão, sem biblioteca: são gráficos simples.
 
 const NS = "http://www.w3.org/2000/svg";
 const fmt = (v, d = 0) => v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -193,7 +193,7 @@ function estados(d) {
   const pv = Object.fromEntries(d.por_vencedor.map((v) => [v.vencedor, v]));
   document.getElementById("lead-estados").textContent =
     `Os ${pv.Lula.estados} estados onde Lula venceu tiveram ${fmt(pv.Lula.por_10mil, 1)} seções alteradas a cada 10 mil, quase 3 vezes os ${fmt(pv["Flávio"].por_10mil, 1)} dos ${pv["Flávio"].estados} estados onde Flávio venceu. ` +
-    `É o dado mais forte a favor da hipótese de direcionamento, mas a mudança é decidida pela zona eleitoral, escola por escola, e o padrão já existia: em 2022, os estados com mais alterações entre turnos foram PE, MA, PR, RR e PA.`;
+    `É o dado mais forte a favor da hipótese de direcionamento. Mas a mudança é decidida pela zona eleitoral, escola por escola, e por isso o teste acima compara cada escola com as vizinhas da mesma zona.`;
   // Comparação agregada: a taxa por 10 mil seções, lado a lado
   legenda("leg-vencedor", [["Lula venceu no estado", cores.Lula], ["Flávio venceu no estado", cores["Flávio"]]]);
   {
@@ -236,29 +236,6 @@ function estados(d) {
       e.alteradas ? pct(e.pct_lula_alt) : "", e.alteradas ? pct(e.pct_flavio_alt) : ""]));
 }
 
-function historico(d) {
-  const series = [["Entre turnos", "entre_turnos", "--series-3"], ["Desde o cadastro", "vs_original", "--neutral"]];
-  legenda("leg-hist", series.map(([n, , c]) => [n, c]));
-  const dados = d.historico.map((h) => (h.ano === 2026 ? { ...h, entre_turnos: d.painel.secoes } : h));
-  const altura = 230, base = 196, topo = 20;
-  const { svg, largura } = svgNovo("g-hist", altura);
-  const max = Math.max(...dados.map((h) => h.vs_original));
-  const grupo = largura / dados.length;
-  const bw = Math.min(56, grupo / 3);
-  el("line", { x1: 0, x2: largura, y1: base, y2: base, stroke: cor("--axis") }, svg);
-  dados.forEach((h, i) => {
-    const cx = grupo * i + grupo / 2;
-    series.forEach(([nome, k, c], j) => {
-      const x = cx - bw - 1 + j * (bw + 2);
-      const alt = (h[k] / max) * (base - topo);
-      const b = barraV(svg, x, base, bw, alt, cor(c));
-      texto(svg, x + bw / 2, base - alt - 6, fmt(h[k]), { "text-anchor": "middle", class: "rotulo-forte" });
-      alvo(b, () => `<div class="t-titulo">${h.ano} · ${nome.toLowerCase()}</div><div class="t-linha"><i style="background:${cor(c)}"></i><b>${fmt(h[k])}</b><span>seções de ${fmt(h.secoes)}</span></div>`);
-    });
-    texto(svg, cx, base + 20, String(h.ano), { "text-anchor": "middle", class: "rotulo-forte" });
-  });
-}
-
 // ---------- Tema e montagem ----------
 
 const ICONES = {
@@ -274,7 +251,7 @@ function temaAtual() {
 let DADOS = null;
 function desenhar() {
   if (!DADOS) return;
-  funil(DADOS); votos(DADOS); permutacao(DADOS); estados(DADOS); historico(DADOS);
+  funil(DADOS); votos(DADOS); permutacao(DADOS); estados(DADOS);
 }
 
 const btn = document.getElementById("btn-tema");

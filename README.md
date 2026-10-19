@@ -34,26 +34,25 @@ Somando os estados por quem venceu no 1º turno:
 | Lula | 12 | 171.726 | 563 | **32,8** |
 | Flávio | 15 | 326.171 | 369 | **11,3** |
 
-Os estados onde Lula venceu tiveram quase 3 vezes mais alterações por seção. É o dado mais forte a favor da hipótese de direcionamento. O padrão regional já existia em 2022 (PE, MA, PR, RR e PA lideraram as alterações entre turnos), e a decisão de mudar é tomada pela zona, escola por escola. Por isso o teste compara cada escola com as vizinhas da mesma zona.
+Os estados onde Lula venceu tiveram quase 3 vezes mais alterações por seção. É o dado mais forte a favor da hipótese de direcionamento. Mas a decisão de mudar é tomada pela zona, escola por escola. Por isso o teste compara cada escola com as vizinhas da mesma zona.
 
 ## Como funciona
 
 ```
 painel do TSE (APEX) ──► coleta/painel_tse_devtools.js   lista de seções alteradas, colada no Console do navegador
                                                             → data/painel/secoes_alteradas_2026-10-19.csv
-dados abertos do TSE ──► pipeline/fontes.py              baixa os zips de locais de votação (2018, 2022, 2026)
+dados abertos do TSE ──► pipeline/fontes.py              baixa os zips de locais de votação (2026)
                                                             e de votação por seção (2026)
                          pipeline/base.py                monta as tabelas no DuckDB e classifica cada seção do painel
-                         pipeline/analise.py             grupos, estados, teste de permutação e série histórica
+                         pipeline/analise.py             grupos, estados e teste de permutação
                          pipeline/run.py                 grava data/tabelas/*.csv e site/data/resultados.json
 GitHub Actions ────────► testes e publicação da página a cada push
 ```
 
 ## Decisões que valem explicar
 
-- **A lista veio do painel, e não do arquivo aberto.** O cadastro aberto de locais de votação tem os dois turnos de cada seção, mas é atualizado com atraso: no mesmo dia, ele tinha 983 seções com local diferente entre turnos, e o painel, 1.106. O botão de exportar do painel falhava (`ORA-40441`) e a tabela mostra 20 linhas por vez, então a coleta chama direto a função de paginação do Oracle APEX que o botão "Próximo" usa.
+- **A lista veio do painel, e não do arquivo aberto.** O cadastro aberto de locais de votação tem os dois turnos de cada seção, mas é atualizado com atraso: das 1.106 seções do painel, 138 ainda aparecem no cadastro com o mesmo local nos dois turnos. O botão de exportar do painel falhava (`ORA-40441`) e a tabela mostra 20 linhas por vez, então a coleta chama direto a função de paginação do Oracle APEX que o botão "Próximo" usa.
 - **Três situações na mesma lista.** O sistema do TSE contava como alteração seções que continuavam no mesmo lugar. Cada seção do painel é conferida contra o cadastro: mesmo local nos dois turnos, local com outro nome no mesmo endereço, ou local e endereço diferentes. Só a terceira entra na análise principal; com a lista inteira o resultado é o mesmo (55,3% de Lula, faixa do acaso de 54,2% a 57,1%, p = 0,68).
-- **"Alteração" tem dois sentidos.** Entre turnos (o local do 2º turno é diferente do 1º) ou desde o cadastro (o local do 2º turno é diferente do local original da seção, o que inclui mudanças feitas antes do 1º turno). O segundo critério dá 2.387 em 2018, 7.783 em 2022 e 6.036 em 2026, e explica boa parte dos números diferentes que circularam.
 - **Comparar dentro da zona.** As mudanças se concentram onde há mais escola rural, falta de energia e chuva nessa época, e essas regiões votaram mais em Lula. Comparar com o Brasil inteiro mostra uma diferença que vem do lugar. Dentro da mesma zona, a cidade, o perfil urbano ou rural e o juiz que decide são os mesmos para os dois lados.
 - **A unidade é a escola.** A decisão é tomada por local de votação: quando uma escola fecha, todas as seções dela mudam juntas. Contar por seção daria peso demais às escolas grandes.
 - **Teste de permutação, não teste paramétrico.** Em cada uma das 175 zonas, sorteio o mesmo número de escolas que mudou de verdade e calculo a fatia do Lula entre Lula e Flávio. Repito 5.000 vezes, com semente fixa. A faixa de 95% descreve o que o acaso produz (não é um intervalo de confiança), e o `p` é a fração dos sorteios que ficou tão longe da média quanto o valor real, ou mais. Os testes conferem que o método não acusa uma escolha ao acaso e acusa uma escolha direcionada.
@@ -76,13 +75,13 @@ GitHub Actions ────────► testes e publicação da página a ca
 ```bash
 pip install -r requirements.txt
 python -m pytest -q
-python -m pipeline.run          # baixa ~400 MB de zips do TSE na primeira vez
+python -m pipeline.run          # baixa ~330 MB de zips do TSE na primeira vez
 python -m http.server -d site 8000
 ```
 
 ## Fontes
 
-- TSE, [Portal de Dados Abertos](https://dadosabertos.tse.jus.br/): eleitorado por local de votação (2018, 2022, 2026) e votação por seção (2026)
+- TSE, [Portal de Dados Abertos](https://dadosabertos.tse.jus.br/): eleitorado por local de votação e votação por seção (2026)
 - TSE, painel de Estatísticas do Eleitorado, relatório "Seções Eleitorais Alteradas no Segundo Turno", coletado em 19/10/2026 às 10h33
 - Agência Brasil (16/10/2026) e Folhapress (18/10/2026) para os números divulgados antes da lista de 19/10
 

@@ -13,7 +13,6 @@ from pipeline import analise, base, fontes
 PAINEL = Path("data/painel/secoes_alteradas_2026-10-19.csv")
 TABELAS = Path("data/tabelas")
 SITE = Path("site/data/resultados.json")
-ANOS_HISTORICO = [2018, 2022, 2026]
 
 REAIS = ["local e endereço diferentes"]
 TODAS = ["mesmo local", "mesmo endereço", "local e endereço diferentes"]
@@ -34,9 +33,7 @@ def registros(df) -> list[dict]:
 
 def main() -> None:
     con = duckdb.connect()
-    for ano in ANOS_HISTORICO:
-        base.criar_locais(con, fontes.csv_locais(ano), ano)
-        base.criar_mudancas(con, ano)
+    base.criar_locais(con, fontes.csv_locais(2026), 2026)
     base.criar_votos(con, fontes.csv_votos(2026))
     base.criar_painel(con, PAINEL)
 
@@ -66,17 +63,11 @@ def main() -> None:
             g.to_csv(TABELAS / "grupos.csv", index=False)
             est.to_csv(TABELAS / "estados.csv", index=False, float_format="%.2f")
 
-    hist, hist_uf = analise.historico(con, ANOS_HISTORICO)
-    hist.to_csv(TABELAS / "historico.csv", index=False)
-    hist_uf.to_csv(TABELAS / "historico_uf.csv", index=False)
-
     saida = {
         "painel": {k: int(v) for k, v in painel.items()},
         "resultados": resultados,
         "estados": registros(est.round(2)),
         "por_vencedor": registros(vencedor.round(2)),
-        "historico": registros(hist),
-        "historico_uf": registros(hist_uf),
     }
     SITE.parent.mkdir(parents=True, exist_ok=True)
     SITE.write_text(json.dumps(saida, ensure_ascii=False, allow_nan=False, default=lambda o: o.item()))

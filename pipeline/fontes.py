@@ -20,9 +20,7 @@ def url_votos(ano: int) -> str:
 
 
 def csv_locais(ano: int) -> Path:
-    # Em 2026 o CSV dentro do zip ganhou o sufixo _BRASIL; nos anos anteriores não tem.
-    nome = f"eleitorado_local_votacao_{ano}_BRASIL.csv" if ano >= 2026 else f"eleitorado_local_votacao_{ano}.csv"
-    return baixar_csv(url_locais(ano), nome)
+    return baixar_csv(url_locais(ano), f"eleitorado_local_votacao_{ano}_BRASIL.csv")
 
 
 def csv_votos(ano: int) -> Path:
