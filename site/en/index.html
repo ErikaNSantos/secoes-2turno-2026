@@ -37,7 +37,7 @@
     </header>
 
     <div class="wrap abertura">
-      <span class="selo">Brazil 2026 elections · electoral court list of Oct 19</span>
+      <span class="selo">Brazil 2026 elections · electoral court list of Oct 20</span>
       <h1>Did the polling place changes for the runoff favor either candidate?</h1>
       <p>Brazil's presidential runoff between Lula and Flávio Bolsonaro is on October 25. I matched the official list of polling sections that changed location for the runoff with each section's first-round votes, and tested whether the changes hit one candidate's sections more than chance would explain.</p>
     </div>
@@ -48,25 +48,25 @@
       <div class="veredito" id="veredito"></div>
 
       <section class="bloco">
-        <h2>From 4,352 down to 932</h2>
-        <p class="lead">The number of moved sections dropped over three days. The electoral court's (TSE) system was counting sections that stayed at the same address as "changed", and the regional courts kept correcting the list.</p>
+        <h2>From 4,352 down to 441</h2>
+        <p class="lead">The number of moved sections dropped over five days. The electoral court's (TSE) system was counting sections that stayed at the same address as "changed", and between Oct 19 and Oct 20 most of the changes were undone (section further down).</p>
         <div class="grade-2">
           <div class="cartao">
             <p class="titulo-grafico">Sections moved for the runoff, by source</p>
-            <p class="sub-grafico">The first two bars are figures the TSE gave the press; the last two come from the dashboard list downloaded on Oct 19.</p>
+            <p class="sub-grafico">The first two bars are figures the TSE gave the press; the others come from the dashboard lists and the TSE polling place registry.</p>
             <div class="grafico" id="g-funil"></div>
           </div>
           <div class="cartao texto">
-            <p>Even the Oct 19 list still had sections that did not move. I checked all 1,106, one by one, against the TSE polling place registry:</p>
+            <p>The Oct 20 list matches the registry from the same day, but it does not count everything. It flags a section as moved when the polling place <strong>code</strong> changes. I checked every section against the registry:</p>
             <div id="limpeza"></div>
-            <p>The analysis uses the <strong>932</strong>. Some of them may still be just a different spelling of the same address ("Avenida Fernando Bezerra" vs. "Avenida Fernando Bezerra, S/N"), so 932 is an upper bound.</p>
+            <p>The changes off the list are sections that kept the polling place code and changed address, like the 5 in Brás de Pina, Rio de Janeiro, until the TSE gave that place a new code. I reviewed them one by one: besides the real ones, there are cases on the same street with a new number (tested separately), doubtful ones and mere spelling differences ("S/N" became "983"), which are left out.</p>
           </div>
         </div>
       </section>
 
       <section class="bloco">
         <h2>How these sections voted in the first round</h2>
-        <p class="lead">In the moved sections, Lula got a larger share of valid votes than the national average. But they are concentrated in the Northeast, so the fair comparison is with the other sections in the same electoral zones.</p>
+        <p class="lead">In the moved sections, Lula got a larger share of valid votes than the national average. But the changes are not spread evenly across the country, so the fair comparison is with the other sections in the same electoral zones.</p>
         <div class="cartao">
           <p class="titulo-grafico">Valid votes for president, first round (Oct 4)</p>
           <p class="sub-grafico">Valid = votes for a candidate. Blank and null votes are in the table, as a share of turnout.</p>
@@ -94,6 +94,27 @@
             <p id="txt-perm"></p>
           </div>
         </div>
+        <div class="cartao" style="margin-top:16px">
+          <p class="titulo-grafico">Does the conclusion depend on the cleaning choices?</p>
+          <p class="sub-grafico">The same test with other definitions of "moved section".</p>
+          <div class="tabela-rolagem" id="t-robustez"></div>
+        </div>
+      </section>
+
+      <section class="bloco">
+        <h2>The changes that were dropped from the list</h2>
+        <p class="lead">Between the Oct 19 and the Oct 20 lists, most polling place changes ceased to exist. If someone chose what to undo with a candidate in mind, the schools whose change was dropped would vote differently from the ones that stayed.</p>
+        <div class="grade-2">
+          <div class="cartao">
+            <p class="titulo-grafico">Lula's share (Lula vs. Flávio) in schools whose change was dropped: actual × 5,000 draws</p>
+            <p class="sub-grafico">Draws within each state. The gray band holds 95% of the draws.</p>
+            <div class="grafico" id="g-saidas"></div>
+          </div>
+          <div class="cartao texto">
+            <p id="txt-saidas"></p>
+            <details class="tabela"><summary>Show by state</summary><div class="tabela-rolagem" id="t-saidas"></div></details>
+          </div>
+        </div>
       </section>
 
       <section class="bloco">
@@ -105,11 +126,11 @@
           <div class="legenda" id="leg-vencedor"></div>
           <div class="grafico" id="g-vencedor"></div>
           <div class="tabela-rolagem" id="t-vencedor" style="margin-top:12px"></div>
-          <p class="sub-grafico" style="margin-top:12px">"Sections" are ballot boxes, not votes. The states Flávio won have more ballot boxes in total, but had fewer moved sections, both in number and in proportion.</p>
+          <p class="sub-grafico" style="margin-top:12px">"Sections" are ballot boxes, not votes. The rate per 10,000 sections puts states of different sizes on the same scale.</p>
         </div>
         <div class="cartao" style="margin-bottom:16px">
           <p class="titulo-grafico">Who is more exposed: how voters in the moved sections voted</p>
-          <p class="sub-grafico">First-round votes in the 932 moved sections. If the move keeps people from voting, these are the votes at stake.</p>
+          <p class="sub-grafico">First-round votes in the moved sections. If the move keeps people from voting, these are the votes at stake.</p>
           <div class="legenda" id="leg-expostos"></div>
           <div class="grafico" id="g-expostos"></div>
           <p class="texto" id="txt-expostos" style="margin-top:8px"></p>
@@ -130,13 +151,14 @@
           <p><strong>Why the unit is the school.</strong> The decision to move is made per polling place: when a school closes, all of its sections move together. Counting section by section would give too much weight to large schools.</p>
           <p><strong>The 95% band.</strong> It is the range that holds 95% of the draws, and describes what chance produces. It is not a confidence interval: it does not estimate a true value, it only shows the expected variation if schools had been picked with no criterion. The <code>p</code> value is the share of draws that landed as far from the average as the actual value, or farther. Below 0.05, the result would be considered unusual.</p>
           <p><strong>What the test does not answer.</strong> Correlation does not prove intent, and the absence of correlation does not prove the change didn't hurt anyone. The real impact can be measured after Oct 25, by comparing runoff abstention in the moved sections with their neighbors.</p>
+          <p><strong>Why the dropped changes are drawn within each state.</strong> No zone had only part of its changes undone: either every school in the zone went back to its old place, or none did. There is nothing to draw within a zone, so the draw is made among schools in the same state, where the regional court decides.</p>
           <ul>
-            <li>The dashboard list has no history: the TSE only shows the current version, and the Oct 16 and Oct 18 versions exist only as figures given to the press.</li>
-            <li>The open polling place registry lags behind the dashboard. All 1,106 dashboard sections were found in the registry, but 138 still show the same place in both rounds there.</li>
-            <li>Some regional courts' reports don't match the national list (the Pernambuco court mentions 6 sections; the registry shows 88 with a different address). From here there is no way to tell which source is outdated.</li>
-            <li>With the full list of 1,106 sections, the result is the same: <span id="txt-todas"></span>.</li>
+            <li>The TSE dashboard only shows the current version of the list. The Oct 19 one is in the repository because it was downloaded that day, and the Oct 16 and Oct 18 versions exist only as figures given to the press.</li>
+            <li>The TSE overwrites the polling place registry at every update. The classification of the Oct 19 list (made against the Oct 18 registry) was saved, because that registry version cannot be downloaded again.</li>
+            <li>For the changes that were dropped, the data cannot tell whether they were undone or the Oct 18 registry was wrong. In the current registry, those sections vote at their first-round place.</li>
+            <li>The split of off-list changes into real, same street with a new number, doubtful and spelling differences was done by hand and is in <code>data/revisao/</code> for anyone to check.</li>
           </ul>
-          <p><strong>Sources.</strong> TSE (Brazil's Superior Electoral Court), <a href="https://dadosabertos.tse.jus.br/">Open Data Portal</a> (voters by polling place and votes by section, 2026) and the Voter Statistics dashboard report "Seções Eleitorais Alteradas no Segundo Turno", collected on Oct 19, 2026 at 10:33 a.m. (Brasília time).</p>
+          <p><strong>Sources.</strong> TSE (Brazil's Superior Electoral Court), <a href="https://dadosabertos.tse.jus.br/">Open Data Portal</a> (voters by polling place as of Oct 20 and votes by section, 2026) and the Voter Statistics dashboard report "Seções Eleitorais Alteradas no Segundo Turno", in its Oct 19, 2026 version (collected at 10:33 a.m., Brasília time) and its Oct 20, 2026 version (exported with the dashboard button).</p>
         </div>
       </section>
     </main>

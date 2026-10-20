@@ -212,3 +212,4 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 .grafico .linha-obs { stroke: var(--ink); stroke-width: 2; }
 .grafico .barra { transition: opacity 0.1s; }
 .grafico .barra.apagada { opacity: 0.35; }
+#limpeza td { white-space: normal; }

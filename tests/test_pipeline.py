@@ -45,20 +45,31 @@ def test_votos_casam_mesmo_sem_zero_a_esquerda(tmp_path):
     assert con.execute("select mun, lula, branco, total from votos").fetchall() == [("02046", 10, 2, 12)]
 
 
-def test_painel_classifica_as_tres_situacoes(tmp_path):
+def test_painel_separa_lista_e_mudancas_fora_dela(tmp_path):
     cab = ("NR_TURNO;SG_UF;CD_MUNICIPIO;NM_MUNICIPIO;NR_ZONA;NR_SECAO;NR_LOCAL_VOTACAO;NM_LOCAL_VOTACAO;"
            "DS_ENDERECO;NR_LOCAL_VOTACAO_ORIGINAL;QT_ELEITOR_SECAO\n")
     linhas = [
-        "1;PE;25313;RECIFE;1;1;100;ESCOLA A;RUA X;100;300", "2;PE;25313;RECIFE;1;1;100;ESCOLA A;RUA X;100;300",  # mesmo local
-        "1;PE;25313;RECIFE;1;2;100;ESCOLA A;RUA X;100;300", "2;PE;25313;RECIFE;1;2;200;ESCOLA A2;RUA X;100;300",  # mesmo endereço
-        "1;PE;25313;RECIFE;1;3;100;ESCOLA A;RUA X;100;300", "2;PE;25313;RECIFE;1;3;300;ESCOLA B;RUA Y;100;300",  # mudou
+        "1;PE;25313;RECIFE;1;1;100;ESCOLA A;RUA X;100;300", "2;PE;25313;RECIFE;1;1;300;ESCOLA B;RUA Y;100;300",  # na lista, mudou
+        "1;PE;25313;RECIFE;1;2;100;ESCOLA A;RUA X;100;300", "2;PE;25313;RECIFE;1;2;200;ESCOLA A2;RUA X;100;300",  # na lista, só o código
+        "1;PE;25313;RECIFE;1;3;100;ESCOLA A;RUA X;100;300", "2;PE;25313;RECIFE;1;3;100;ESCOLA A;RUA Z;100;300",  # fora da lista
+        "1;PE;25313;RECIFE;1;4;100;ESCOLA A;RUA X;100;300", "2;PE;25313;RECIFE;1;4;100;ESCOLA A;RUA X;100;300",  # não mudou
     ]
     (tmp_path / "l.csv").write_text(cab + "\n".join(linhas) + "\n", encoding="latin-1")
-    painel = '"UF";"Município";"Zona";"Seção";"Local de votação inicial";"Local de votação final";"Eleitorado"\n'
-    painel += "".join(f'"PE";"RECIFE";"1";"{s}";"A";"B";"300"\n' for s in (1, 2, 3))
-    (tmp_path / "p.csv").write_text(painel, encoding="utf-8")
+    lista = "aa_eleicao;nm_pais;sg_uf;nm_municipio;nr_zona;nm_local_votacao_inicial;nr_secao;nm_local_votacao_final;qt_eleitores\n"
+    lista += "".join(f"2026;Brasil;PE;RECIFE;1;A;{s};B;300\n" for s in (1, 2))
+    (tmp_path / "lista.csv").write_text(lista, encoding="utf-8")
+    (tmp_path / "rev.csv").write_text("uf;munnm;zona;secao;classe\nPE;RECIFE;1;3;real\n", encoding="utf-8")
     con = duckdb.connect()
     base.criar_locais(con, tmp_path / "l.csv", 2026)
-    base.criar_painel(con, tmp_path / "p.csv")
+    base.criar_painel(con, tmp_path / "lista.csv", tmp_path / "rev.csv")
     assert con.execute("select secao, categoria from painel order by secao").fetchall() == [
-        (1, "mesmo local"), (2, "mesmo endereço"), (3, "local e endereço diferentes")]
+        (1, "lista: local e endereço diferentes"), (2, "lista: código mudou, mesmo endereço"), (3, "fora da lista: real")]
+
+
+def test_permutacao_por_estrato_maior():
+    # Em cada zona, ou todas as escolas mudam ou nenhuma: dentro da zona não há o que sortear.
+    esc = escolas_sinteticas(direcionado=False)
+    esc["alterada"] = esc.zona < 20
+    assert analise.permutacao(esc, n=50)["faixa95"][0] == analise.permutacao(esc, n=50)["faixa95"][1]
+    r = analise.permutacao(esc, n=500, estrato=("uf",))
+    assert r["faixa95"][0] < r["faixa95"][1]

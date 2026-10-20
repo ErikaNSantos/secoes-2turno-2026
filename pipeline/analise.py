@@ -1,4 +1,4 @@
-"""As análises: votos por grupo, estados e teste de permutação."""
+"""As análises: votos por grupo, estados, teste de permutação e as mudanças que saíram da lista."""
 import duckdb
 import numpy as np
 import pandas as pd
@@ -77,14 +77,14 @@ def escolas(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
     """).df()
 
 
-def permutacao(esc: pd.DataFrame, n: int = 5000, semente: int = 7) -> dict:
+def permutacao(esc: pd.DataFrame, n: int = 5000, semente: int = 7, estrato: tuple = ("uf", "mun", "zona")) -> dict:
     """Sorteia, dentro de cada zona, o mesmo número de escolas que mudou de verdade.
 
     Mede a fatia do Lula nos votos dados a Lula ou Flávio nas escolas sorteadas.
     As n repetições mostram o que uma escolha ao acaso produziria.
     """
     esc = esc.reset_index(drop=True)
-    chave = esc.uf + "|" + esc.mun + "|" + esc.zona.astype(str)
+    chave = esc[list(estrato)].astype(str).agg("|".join, axis=1)
     grupos = [(g.index.to_numpy(), int(g.alterada.sum())) for _, g in esc.groupby(chave)]
     lula, flavio = esc.lula.to_numpy(float), esc.flavio.to_numpy(float)
 
@@ -101,7 +101,8 @@ def permutacao(esc: pd.DataFrame, n: int = 5000, semente: int = 7) -> dict:
     return {
         "escolas_alteradas": int(esc.alterada.sum()),
         "escolas_total": len(esc),
-        "zonas": len(grupos),
+        "zonas": len(grupos),  # estratos: zonas, ou UFs quando estrato=("uf",)
+        "estratos_com_variacao": sum(1 for ix, k in grupos if 0 < k < len(ix)),
         "observado": float(obs),
         "media_acaso": float(media),
         "faixa95": [float(np.percentile(sims, 2.5)), float(np.percentile(sims, 97.5))],
@@ -109,3 +110,34 @@ def permutacao(esc: pd.DataFrame, n: int = 5000, semente: int = 7) -> dict:
         "sims": sims,
     }
 
+
+
+def saidas_por_uf(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
+    """Mudanças reais da lista de 19/10: quantas continuam na lista atual e quantas saíram."""
+    return con.execute("""
+        select h.uf, count(*) em_19_10, count(p.uf) mantidas, count(*) - count(p.uf) sairam
+        from historico h
+        left join (select * from painel where categoria like 'lista:%') p using (uf, mun, zona, secao)
+        where h.categoria = 'local e endereço diferentes'
+        group by 1 order by sairam desc, em_19_10 desc
+    """).df()
+
+
+def escolas_saidas(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
+    """Uma linha por escola que tinha mudança real na lista de 19/10.
+
+    alterada = a mudança saiu da lista atual (todas as seções alteradas da escola saíram).
+    Os votos são só das seções que estavam na lista de 19/10.
+    """
+    return con.execute("""
+        select l.uf, l.mun, l.zona, l.local_votacao,
+               bool_and(p.uf is null) alterada, sum(v.lula) lula, sum(v.flavio) flavio
+        from historico h
+        join locais_2026 l on l.turno = 1 and l.uf = h.uf and l.mun = h.mun and l.zona = h.zona and l.secao = h.secao
+        join votos v on v.uf = h.uf and v.mun = h.mun and v.zona = h.zona and v.secao = h.secao
+        left join (select * from painel where categoria like 'lista:%') p
+               on p.uf = h.uf and p.mun = h.mun and p.zona = h.zona and p.secao = h.secao
+        where h.categoria = 'local e endereço diferentes'
+        group by all
+        order by l.uf, l.mun, l.zona, l.local_votacao  -- ordem fixa: com a mesma semente, o mesmo sorteio
+    """).df()

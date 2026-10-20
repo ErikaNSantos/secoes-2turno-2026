@@ -13,8 +13,9 @@ const cor = (nome) => getComputedStyle(document.documentElement).getPropertyValu
 const FUNIL = [
   { rotulo: L("16/10 · TSE à imprensa", "Oct 16 · TSE to the press"), valor: 4352 },
   { rotulo: L("18/10 · TSE à imprensa", "Oct 18 · TSE to the press"), valor: 2033 },
-  { rotulo: L("19/10 · lista do painel", "Oct 19 · dashboard list"), valor: null, chave: "secoes" },
-  { rotulo: L("19/10 · com endereço diferente", "Oct 19 · different address"), valor: null, chave: "reais" },
+  { rotulo: L("19/10 · lista do painel", "Oct 19 · dashboard list"), valor: (d) => d.historico.secoes },
+  { rotulo: L("20/10 · lista do painel", "Oct 20 · dashboard list"), valor: (d) => d.lista.secoes },
+  { rotulo: L("20/10 · mudanças reais analisadas", "Oct 20 · real changes analyzed"), valor: (d) => d.lista.analisadas },
 ];
 
 function el(tag, attrs = {}, pai) {
@@ -84,10 +85,10 @@ function tabela(id, cab, linhas) {
 // ---------- Blocos ----------
 
 function tiles(d) {
-  const t = d.resultados.reais.teste;
+  const t = d.resultados.principal.teste;
   const itens = [
-    [L("Seções na lista do TSE", "Sections on the TSE list"), fmt(d.painel.secoes), L("painel de 19/10", "dashboard, Oct 19")],
-    [L("Com local e endereço diferentes", "Different place and address"), fmt(d.painel.reais), fmt(d.painel.eleitorado_reais) + L(" eleitores", " voters")],
+    [L("Seções na lista do TSE", "Sections on the TSE list"), fmt(d.lista.secoes), L("painel de 20/10", "dashboard, Oct 20")],
+    [L("Mudanças reais analisadas", "Real changes analyzed"), fmt(d.lista.analisadas), fmt(d.lista.eleitores_analisadas) + L(" eleitores", " voters")],
     [L("Fatia do Lula nas escolas alteradas", "Lula's share in moved schools"), pct(100 * t.observado), L("acaso: ", "chance: ") + pct(100 * t.media_acaso)],
     [L("p do teste", "Test p-value"), fmt(t.p, 2), L("abaixo de 0,05 seria fora do normal", "below 0.05 would be unusual")],
   ];
@@ -100,7 +101,7 @@ function tiles(d) {
 }
 
 function funil(d) {
-  const dados = FUNIL.map((f) => ({ ...f, valor: f.valor ?? d.painel[f.chave] }));
+  const dados = FUNIL.map((f) => ({ ...f, valor: typeof f.valor === "function" ? f.valor(d) : f.valor }));
   const linha = 44, topo = 4;
   const { svg, largura } = svgNovo("g-funil", topo + dados.length * linha);
   const max = Math.max(...dados.map((f) => f.valor));
@@ -108,17 +109,17 @@ function funil(d) {
   dados.forEach((f, i) => {
     const y = topo + i * linha;
     texto(svg, 0, y + 12, f.rotulo);
-    const nosso = i >= 2;
+    const nosso = i >= 3;
     const b = barraH(svg, 0, y + 18, (f.valor / max) * w, 18, cor(nosso ? "--accent" : "--neutral"));
     texto(svg, (f.valor / max) * w + 6, y + 31, fmt(f.valor), { class: "rotulo-forte" });
     alvo(b, () => `<div class="t-titulo">${f.rotulo}</div><div class="t-linha"><b>${fmt(f.valor)}</b><span>${L("seções", "sections")}</span></div>`);
   });
-  const p = d.painel;
+  const p = d.lista;
   document.getElementById("limpeza").innerHTML = `<table><tbody>
-    <tr><td>${L("Na lista do painel", "On the dashboard list")}</td><td class="num">${fmt(p.secoes)}</td></tr>
-    <tr><td>${L("Mesmo local nos dois turnos no cadastro", "Same place in both rounds in the registry")}</td><td class="num">−${fmt(p.mesmo_local)}</td></tr>
-    <tr><td>${L("Local mudou de nome, endereço idêntico", "Place renamed, same address")}</td><td class="num">−${fmt(p.mesmo_endereco)}</td></tr>
-    <tr><td><strong>${L("Local e endereço diferentes", "Different place and address")}</strong></td><td class="num"><strong>${fmt(p.reais)}</strong></td></tr>
+    <tr><td>${L("Na lista do painel de 20/10", "On the Oct 20 dashboard list")}</td><td class="num">${fmt(p.secoes)}</td></tr>
+    <tr><td>${L("Só trocaram o código do local, mesmo endereço", "Only the place code changed, same address")}</td><td class="num">−${fmt(p.codigo)}</td></tr>
+    <tr><td>${L("Fora da lista: mesmo código, outro endereço (mudança real)", "Off the list: same code, new address (real change)")}</td><td class="num">+${fmt(p.fora_real)}</td></tr>
+    <tr><td><strong>${L("Mudanças reais analisadas", "Real changes analyzed")}</strong></td><td class="num"><strong>${fmt(p.analisadas)}</strong></td></tr>
   </tbody></table>`;
 }
 
@@ -126,7 +127,7 @@ function votos(d) {
   const nomes = { alteradas: L("Seções alteradas", "Moved sections"), "mesmas zonas, não alteradas": L("Mesmas zonas, não alteradas", "Same zones, not moved"), Brasil: L("Brasil", "Brazil") };
   const series = [["Lula", "lula", "--lula"], ["Flávio", "flavio", "--flavio"], [L("Outros candidatos", "Other candidates"), "outros", "--neutral"]];
   legenda("leg-votos", series.map(([n, , c]) => [n, c]));
-  const g = d.resultados.reais.grupos;
+  const g = d.resultados.principal.grupos;
   const linha = 58, topo = 2;
   const { svg, largura } = svgNovo("g-votos", topo + g.length * linha);
   g.forEach((r, i) => {
@@ -156,12 +157,11 @@ function votos(d) {
     }));
 }
 
-function permutacao(d) {
-  const r = d.resultados.reais;
-  const t = r.teste, h = r.histograma;
-  document.getElementById("n-zonas").textContent = fmt(t.zonas);
+// Histograma dos sorteios com a faixa de 95% e a linha do valor real.
+function histograma(id, t) {
+  const h = t.histograma;
   const altura = 240, base = 200, esq = 4;
-  const { svg, largura } = svgNovo("g-perm", altura);
+  const { svg, largura } = svgNovo(id, altura);
   const n = h.contagem.length;
   const x0 = h.inicio, x1 = h.inicio + n * h.passo;
   const xs = (v) => esq + ((v - x0) / (x1 - x0)) * (largura - 2 * esq);
@@ -183,16 +183,43 @@ function permutacao(d) {
     texto(svg, xs(v / 100), base + 18, v + "%", { "text-anchor": "middle" });
   }
   texto(svg, xs((t.faixa95[0] + t.faixa95[1]) / 2), base + 36, L("faixa de 95% do acaso", "95% range of chance"), { "text-anchor": "middle" });
+}
 
+function permutacao(d) {
+  const t = d.resultados.principal.teste;
+  document.getElementById("n-zonas").textContent = fmt(t.zonas);
+  histograma("g-perm", t);
   document.getElementById("txt-perm").innerHTML =
     L(`Nas <strong>${fmt(t.escolas_alteradas)}</strong> escolas que mudaram (entre ${fmt(t.escolas_total)} escolas dessas zonas), Lula teve <strong>${pct(100 * t.observado)}</strong> dos votos dados a Lula ou Flávio. Os sorteios deram em média ${pct(100 * t.media_acaso)}, e 95% deles ficaram entre ${pct(100 * t.faixa95[0])} e ${pct(100 * t.faixa95[1])}. ` +
       `O valor real está dentro da faixa, com <strong>p = ${fmt(t.p, 2)}</strong>: em ${fmt(100 * t.p, 0)}% dos sorteios, o acaso ficou tão longe da média quanto o real, ou mais. Para indicar que escolas lulistas foram escolhidas de propósito, o real teria que passar de ${pct(100 * t.faixa95[1])}; para indicar o contrário, ficar abaixo de ${pct(100 * t.faixa95[0])}.`,
       `In the <strong>${fmt(t.escolas_alteradas)}</strong> schools that moved (out of ${fmt(t.escolas_total)} schools in those zones), Lula got <strong>${pct(100 * t.observado)}</strong> of the votes cast for Lula or Flávio. The draws averaged ${pct(100 * t.media_acaso)}, and 95% of them fell between ${pct(100 * t.faixa95[0])} and ${pct(100 * t.faixa95[1])}. ` +
       `The actual value is inside that range, with <strong>p = ${fmt(t.p, 2)}</strong>: in ${fmt(100 * t.p, 0)}% of the draws, chance landed as far from the average as the actual value, or farther. To suggest that pro-Lula schools were picked on purpose, the actual value would have to exceed ${pct(100 * t.faixa95[1])}; to suggest the opposite, fall below ${pct(100 * t.faixa95[0])}.`);
-  const td = d.resultados.todas.teste;
-  document.getElementById("txt-todas").textContent =
-    L(`${pct(100 * td.observado)} de Lula nas escolas alteradas, faixa do acaso de ${pct(100 * td.faixa95[0])} a ${pct(100 * td.faixa95[1])}, p = ${fmt(td.p, 2)}`,
-      `${pct(100 * td.observado)} for Lula in moved schools, chance range ${pct(100 * td.faixa95[0])} to ${pct(100 * td.faixa95[1])}, p = ${fmt(td.p, 2)}`);
+
+  const versoes = [
+    ["principal", L("Lista limpa + mudanças reais fora dela (principal)", "Clean list + real changes off the list (main)")],
+    ["so_lista", L("Só a lista limpa", "Clean list only")],
+    ["com_mesma_rua", L("+ mesma rua, outro número", "+ same street, new number")],
+    ["lista_inteira", L("Lista inteira, sem limpeza", "Full list, no cleaning")],
+  ];
+  tabela("t-robustez", [[L("Versão", "Version")], [L("Seções", "Sections"), 1], [L("Lula nas escolas alteradas", "Lula in moved schools"), 1], [L("95% do acaso", "95% of chance"), 1], ["p", 1]],
+    versoes.map(([k, nome]) => {
+      const r = d.resultados[k], tt = r.teste;
+      return [nome, fmt(r.secoes), pct(100 * tt.observado), `${pct(100 * tt.faixa95[0])} ${L("a", "to")} ${pct(100 * tt.faixa95[1])}`, fmt(tt.p, 2)];
+    }));
+}
+
+function saidas(d) {
+  const s = d.saidas, t = s.teste, hh = d.historico;
+  histograma("g-saidas", t);
+  document.getElementById("txt-saidas").innerHTML =
+    L(`Das <strong>${fmt(hh.reais)}</strong> mudanças reais da lista de 19/10, <strong>${fmt(hh.sairam)}</strong> não estão mais na lista de 20/10, e no cadastro atual essas seções voltam a votar no mesmo local do 1º turno. ` +
+      `Nenhuma das ${fmt(s.zonas)} zonas teve só parte das mudanças desfeita: a decisão foi por zona inteira. Por isso o sorteio aqui é feito dentro de cada estado, onde o TRE decide. ` +
+      `As escolas cuja mudança saiu deram <strong>${pct(100 * t.observado)}</strong> de Lula; sorteando o mesmo número de escolas dentro de cada estado, 95% dos sorteios ficaram entre ${pct(100 * t.faixa95[0])} e ${pct(100 * t.faixa95[1])} (<strong>p = ${fmt(t.p, 2)}</strong>). Dentro de cada estado, o que foi desfeito não pende para nenhum lado.`,
+      `Of the <strong>${fmt(hh.reais)}</strong> real changes on the Oct 19 list, <strong>${fmt(hh.sairam)}</strong> are no longer on the Oct 20 list, and in the current registry those sections vote at their first-round place again. ` +
+      `None of the ${fmt(s.zonas)} zones had only part of its changes undone: the decision was made per whole zone. So the draw here is made within each state, where the regional court decides. ` +
+      `The schools whose change was dropped gave Lula <strong>${pct(100 * t.observado)}</strong>; drawing the same number of schools within each state, 95% of the draws fell between ${pct(100 * t.faixa95[0])} and ${pct(100 * t.faixa95[1])} (<strong>p = ${fmt(t.p, 2)}</strong>). Within each state, what was undone does not lean either way.`);
+  tabela("t-saidas", [[L("UF", "State")], [L("Mudanças reais em 19/10", "Real changes, Oct 19"), 1], [L("Ainda na lista em 20/10", "Still listed, Oct 20"), 1], [L("Saíram", "Dropped"), 1]],
+    s.por_uf.map((u) => [u.uf, fmt(u.em_19_10), fmt(u.mantidas), fmt(u.sairam)]));
 }
 
 function estados(d) {
@@ -202,10 +229,10 @@ function estados(d) {
   legenda("leg-estados", legVenc);
   const pv = Object.fromEntries(d.por_vencedor.map((v) => [v.vencedor, v]));
   document.getElementById("lead-estados").textContent =
-    L(`Os ${pv.Lula.estados} estados onde Lula venceu tiveram ${fmt(pv.Lula.por_10mil, 1)} seções alteradas a cada 10 mil, quase 3 vezes os ${fmt(pv["Flávio"].por_10mil, 1)} dos ${pv["Flávio"].estados} estados onde Flávio venceu. ` +
-      `É o dado mais forte a favor da hipótese de direcionamento. Mas a mudança é decidida pela zona eleitoral, escola por escola, e por isso o teste acima compara cada escola com as vizinhas da mesma zona.`,
-      `The ${pv.Lula.estados} states Lula won had ${fmt(pv.Lula.por_10mil, 1)} moved sections per 10,000, almost 3 times the ${fmt(pv["Flávio"].por_10mil, 1)} in the ${pv["Flávio"].estados} states Flávio won. ` +
-      `This is the strongest data point in favor of the targeting hypothesis. But the move is decided by the electoral zone, school by school, which is why the test above compares each school with its neighbors in the same zone.`);
+    L(`Na lista atual, os ${pv.Lula.estados} estados onde Lula venceu têm ${fmt(pv.Lula.por_10mil, 1)} seções alteradas a cada 10 mil, e os ${pv["Flávio"].estados} onde Flávio venceu, ${fmt(pv["Flávio"].por_10mil, 1)}. ` +
+      `Na lista de 19/10 a diferença era de quase 3 vezes (32,8 contra 11,3), e era o dado mais forte a favor da hipótese de direcionamento. Ela vinha das mudanças no Nordeste que saíram da lista (seção acima).`,
+      `On the current list, the ${pv.Lula.estados} states Lula won have ${fmt(pv.Lula.por_10mil, 1)} moved sections per 10,000, and the ${pv["Flávio"].estados} states Flávio won have ${fmt(pv["Flávio"].por_10mil, 1)}. ` +
+      `On the Oct 19 list the gap was almost 3 times (32.8 vs. 11.3), and it was the strongest data point for the targeting hypothesis. It came from the Northeast changes that were dropped from the list (section above).`);
   // Comparação agregada: a taxa por 10 mil seções, lado a lado
   legenda("leg-vencedor", legVenc);
   {
@@ -226,8 +253,8 @@ function estados(d) {
     [pv.Lula, pv["Flávio"]].map((v) => [v.vencedor, fmt(v.estados), fmt(v.secoes), fmt(v.alteradas), fmt(v.por_10mil, 1), fmt(v.aptos_alteradas)]));
 
   // Exposição: votos do 1º turno dentro das seções alteradas, em número absoluto
-  const alt = d.resultados.reais.grupos.find((g) => g.grupo === "alteradas");
-  const brasil = d.resultados.reais.grupos.find((g) => g.grupo === "Brasil");
+  const alt = d.resultados.principal.grupos.find((g) => g.grupo === "alteradas");
+  const brasil = d.resultados.principal.grupos.find((g) => g.grupo === "Brasil");
   legenda("leg-expostos", [["Lula", "--lula"], ["Flávio", "--flavio"]]);
   {
     const validos = alt.lula + alt.flavio + alt.outros;
@@ -290,7 +317,7 @@ function temaAtual() {
 let DADOS = null;
 function desenhar() {
   if (!DADOS) return;
-  funil(DADOS); votos(DADOS); permutacao(DADOS); estados(DADOS);
+  funil(DADOS); votos(DADOS); permutacao(DADOS); saidas(DADOS); estados(DADOS);
 }
 
 const btn = document.getElementById("btn-tema");

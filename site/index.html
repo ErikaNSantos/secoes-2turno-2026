@@ -37,7 +37,7 @@
     </header>
 
     <div class="wrap abertura">
-      <span class="selo">Eleições 2026 · lista do TSE de 19/10</span>
+      <span class="selo">Eleições 2026 · lista do TSE de 20/10</span>
       <h1>As mudanças de seção no 2º turno favoreceram algum candidato?</h1>
       <p>Cruzei a lista oficial de seções eleitorais que mudaram de local para o 2º turno com os votos do 1º turno de cada uma delas, e testei se as mudanças caíram mais em seções de um candidato do que o acaso explicaria.</p>
     </div>
@@ -48,25 +48,25 @@
       <div class="veredito" id="veredito"></div>
 
       <section class="bloco">
-        <h2>De 4.352 para 932</h2>
-        <p class="lead">O número de seções alteradas caiu ao longo de três dias. O sistema do TSE contava como alteração seções que seguiam no mesmo endereço, e os tribunais regionais foram corrigindo a lista.</p>
+        <h2>De 4.352 para 441</h2>
+        <p class="lead">O número de seções alteradas caiu ao longo de cinco dias. O sistema do TSE contava como alteração seções que seguiam no mesmo endereço, e entre 19/10 e 20/10 a maior parte das mudanças foi desfeita (seção mais abaixo).</p>
         <div class="grade-2">
           <div class="cartao">
             <p class="titulo-grafico">Seções alteradas para o 2º turno, segundo cada fonte</p>
-            <p class="sub-grafico">As duas primeiras barras são números divulgados pelo TSE à imprensa; as duas últimas, da lista do painel baixada em 19/10.</p>
+            <p class="sub-grafico">As duas primeiras barras são números divulgados pelo TSE à imprensa; as outras vêm das listas do painel e do cadastro de locais do TSE.</p>
             <div class="grafico" id="g-funil"></div>
           </div>
           <div class="cartao texto">
-            <p>Mesmo a lista de 19/10 ainda tinha seções que não mudaram de lugar. Conferi as 1.106, uma a uma, contra o cadastro de locais do TSE:</p>
+            <p>A lista de 20/10 bate com o cadastro de locais do mesmo dia, mas não conta tudo. Ela marca uma seção como alterada quando o <strong>código</strong> do local muda. Conferi cada seção contra o cadastro:</p>
             <div id="limpeza"></div>
-            <p>A análise usa as <strong>932</strong>. Parte delas ainda pode ser só diferença de escrita no endereço ("Avenida Fernando Bezerra" e "Avenida Fernando Bezerra, S/N"), então 932 é um teto.</p>
+            <p>As mudanças fora da lista são seções que mantiveram o código do local e mudaram de endereço, como as 5 de Brás de Pina, no Rio, até o TSE dar um código novo ao local. Revisei uma a uma: além das reais, há casos na mesma rua com outro número (testados à parte), duvidosos e só diferenças de escrita ("S/N" virou "983"), que ficam de fora.</p>
           </div>
         </div>
       </section>
 
       <section class="bloco">
         <h2>Como essas seções votaram no 1º turno</h2>
-        <p class="lead">Nas seções alteradas, Lula teve mais votos válidos que a média do Brasil. Mas elas estão concentradas no Nordeste, então a comparação justa é com as outras seções das mesmas zonas eleitorais.</p>
+        <p class="lead">Nas seções alteradas, Lula teve mais votos válidos que a média do Brasil. Mas as mudanças não estão espalhadas por igual pelo país, então a comparação justa é com as outras seções das mesmas zonas eleitorais.</p>
         <div class="cartao">
           <p class="titulo-grafico">Votos válidos para presidente no 1º turno (4/10)</p>
           <p class="sub-grafico">Válidos = votos em candidatos. Brancos e nulos estão na tabela, como % de quem compareceu.</p>
@@ -94,6 +94,27 @@
             <p id="txt-perm"></p>
           </div>
         </div>
+        <div class="cartao" style="margin-top:16px">
+          <p class="titulo-grafico">A conclusão depende das escolhas de limpeza?</p>
+          <p class="sub-grafico">O mesmo teste com outras definições de "seção alterada".</p>
+          <div class="tabela-rolagem" id="t-robustez"></div>
+        </div>
+      </section>
+
+      <section class="bloco">
+        <h2>As mudanças que saíram da lista</h2>
+        <p class="lead">Entre a lista de 19/10 e a de 20/10, a maior parte das mudanças de local deixou de existir. Se alguém escolhesse o que desfazer pensando num candidato, as escolas cuja mudança saiu votariam diferente das que continuaram.</p>
+        <div class="grade-2">
+          <div class="cartao">
+            <p class="titulo-grafico">Fatia do Lula (entre Lula e Flávio) nas escolas cuja mudança saiu: real × 5.000 sorteios</p>
+            <p class="sub-grafico">Sorteio dentro de cada estado. A faixa cinza contém 95% dos sorteios.</p>
+            <div class="grafico" id="g-saidas"></div>
+          </div>
+          <div class="cartao texto">
+            <p id="txt-saidas"></p>
+            <details class="tabela"><summary>Ver por estado</summary><div class="tabela-rolagem" id="t-saidas"></div></details>
+          </div>
+        </div>
       </section>
 
       <section class="bloco">
@@ -105,11 +126,11 @@
           <div class="legenda" id="leg-vencedor"></div>
           <div class="grafico" id="g-vencedor"></div>
           <div class="tabela-rolagem" id="t-vencedor" style="margin-top:12px"></div>
-          <p class="sub-grafico" style="margin-top:12px">"Seções" são urnas, não votos. Os estados onde Flávio venceu têm mais urnas no total, mas tiveram menos seções alteradas, em número e em proporção.</p>
+          <p class="sub-grafico" style="margin-top:12px">"Seções" são urnas, não votos. A taxa a cada 10 mil seções põe estados de tamanhos diferentes na mesma régua.</p>
         </div>
         <div class="cartao" style="margin-bottom:16px">
           <p class="titulo-grafico">Quem é mais exposto: em quem votaram os eleitores das seções alteradas</p>
-          <p class="sub-grafico">Votos do 1º turno nas 932 seções alteradas. Se a mudança de local fizer gente deixar de votar, é daqui que os votos saem.</p>
+          <p class="sub-grafico">Votos do 1º turno nas seções alteradas. Se a mudança de local fizer gente deixar de votar, é daqui que os votos saem.</p>
           <div class="legenda" id="leg-expostos"></div>
           <div class="grafico" id="g-expostos"></div>
           <p class="texto" id="txt-expostos" style="margin-top:8px"></p>
@@ -130,13 +151,14 @@
           <p><strong>Por que a unidade é a escola.</strong> A decisão de mudar é tomada por local de votação: quando uma escola fecha, todas as seções dela mudam juntas. Contar seção por seção daria peso demais às escolas grandes.</p>
           <p><strong>A faixa de 95%.</strong> É o intervalo que contém 95% dos sorteios, e descreve o que o acaso produz. Não é um intervalo de confiança: ele não estima um valor verdadeiro, só mostra a variação esperada se as escolas tivessem sido escolhidas sem critério. O <code>p</code> é a fração dos sorteios que ficou tão longe da média quanto o valor real, ou mais longe. Abaixo de 0,05, o resultado seria considerado fora do normal.</p>
           <p><strong>O que o teste não responde.</strong> Correlação não prova intenção, e ausência de correlação não prova que a mudança não atrapalhou ninguém. O impacto real se mede depois de 25/10, comparando a abstenção do 2º turno nas seções alteradas com a das vizinhas.</p>
+          <p><strong>Por que o sorteio das mudanças desfeitas é por estado.</strong> Nenhuma zona teve só parte das mudanças desfeita: ou todas as escolas da zona voltaram ao local antigo, ou nenhuma voltou. Dentro da zona não há o que sortear, então o sorteio é feito entre as escolas do mesmo estado, que é onde o TRE decide.</p>
           <ul>
-            <li>A lista do painel não tem histórico: o TSE mostra só a versão atual, e as versões de 16/10 e 18/10 existem apenas nos números divulgados à imprensa.</li>
-            <li>O cadastro aberto de locais é atualizado com atraso em relação ao painel. Todas as 1.106 seções do painel foram encontradas no cadastro, mas 138 ainda aparecem lá com o mesmo local nos dois turnos.</li>
-            <li>Os relatórios dos TREs não batem com a lista nacional em alguns estados (o TRE-PE fala em 6 seções; o cadastro mostra 88 com endereço diferente). Daqui não dá para saber qual das duas fontes está desatualizada.</li>
-            <li>Com a lista completa de 1.106 seções, o resultado é o mesmo: <span id="txt-todas"></span>.</li>
+            <li>O painel do TSE mostra só a versão atual da lista. A de 19/10 está no repositório porque foi baixada naquele dia, e as versões de 16/10 e 18/10 existem apenas nos números divulgados à imprensa.</li>
+            <li>O TSE sobrescreve o cadastro de locais a cada atualização. A classificação da lista de 19/10 (feita contra o cadastro de 18/10) ficou salva, porque aquela versão do cadastro não pode ser baixada de novo.</li>
+            <li>Das mudanças que saíram da lista, não dá para saber pelos dados se foram desfeitas ou se o cadastro de 18/10 estava errado. No cadastro atual, essas seções votam no mesmo local do 1º turno.</li>
+            <li>A separação das mudanças fora da lista entre reais, mesma rua com outro número, duvidosas e diferenças de escrita foi feita à mão e está em <code>data/revisao/</code>, para quem quiser conferir.</li>
           </ul>
-          <p><strong>Fontes.</strong> TSE, <a href="https://dadosabertos.tse.jus.br/">Portal de Dados Abertos</a> (eleitorado por local de votação e votação por seção de 2026) e painel de Estatísticas do Eleitorado, relatório "Seções Eleitorais Alteradas no Segundo Turno", coletado em 19/10/2026 às 10h33.</p>
+          <p><strong>Fontes.</strong> TSE, <a href="https://dadosabertos.tse.jus.br/">Portal de Dados Abertos</a> (eleitorado por local de votação de 20/10 e votação por seção de 2026) e painel de Estatísticas do Eleitorado, relatório "Seções Eleitorais Alteradas no Segundo Turno", nas versões de 19/10/2026 (coletada às 10h33) e de 20/10/2026 (exportada pelo botão do painel).</p>
         </div>
       </section>
     </main>
